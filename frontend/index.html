@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Management System - BCA Project</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3B82F6;
+            --secondary-color: #10B981;
+            --danger-color: #EF4444;
+            --warning-color: #F59E0B;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .hero-section {
+            padding: 80px 0;
+            color: white;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+        
+        .btn-custom {
+            padding: 12px 40px;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary-custom {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+        }
+        
+        .btn-primary-custom:hover {
+            background: #2563EB;
+            transform: scale(1.05);
+        }
+        
+        .stats-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            color: white;
+            margin: 10px 0;
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 450px;
+            margin: 0 auto;
+        }
+        
+        .login-card h3 {
+            color: #1F2937;
+        }
+    
+        .login-card .form-label {
+            color: #374151;
+            font-weight: 500;
+        }
+    
+        .login-card .form-control {
+            border: 1px solid #D1D5DB;
+            color: #1F2937;
+        }
+    
+        .login-card .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+        }
+    
+        .login-card a {
+            text-decoration: none;
+        }
+    
+        .login-card .text-muted {
+            color: #6B7280 !important;
+        }
+    
+        .login-card .text-primary {
+            color: var(--primary-color) !important;
+        }
+
+        footer {
+            background: rgba(0,0,0,0.2);
+            color: white;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+
+        .alert-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 400px;
+        }
+
+        footer a {
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #9CA3AF;
+        }
+    </style>
+</head>
+<body>
+    <!-- Alert Container -->
+    <div id="alertContainer" class="alert-container"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: rgba(0,0,0,0.3); backdrop-filter: blur(10px);">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-wallet"></i> Expense Management System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link btn btn-light text-primary ms-2" href="login.html">Login</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-3 fw-bold mb-4">Manage Your Expenses Smartly</h1>
+                    <p class="lead mb-4">Track, budget, and predict your expenses with our AI-powered system. Make informed financial decisions with advanced analytics.</p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a href="#quick-login" class="btn btn-custom btn-primary-custom">Quick Login</a>
+                        <a href="register.html" class="btn btn-custom btn-outline-light">Create Account</a>
+                        <a href="#features" class="btn btn-custom btn-outline-light">Learn More</a>
+                    </div>
+                    
+                    <div class="row mt-5">
+                        <div class="col-md-4">
+                            <div class="stats-card text-center">
+                                <h3 class="mb-0">1000+</h3>
+                                <small>Active Users</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card text-center">
+                                <h3 class="mb-0">Rs.50k+</h3>
+                                <small>Tracked</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card text-center">
+                                <h3 class="mb-0">95%</h3>
+                                <small>Accuracy</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6" id="quick-login">
+                    <div class="login-card" id="loginCardContainer">
+                        <!-- Login form will be injected here -->
+                        <div class="text-center mb-4">
+                            <h3><i class="fas fa-sign-in-alt text-primary"></i> Quick Login</h3>
+                            <p class="text-muted small">Fast access to your dashboard</p>
+                        </div>
+                        
+                        <form id="loginForm">
+                            <div class="mb-3">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" required placeholder="Enter username" autofocus>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <div class="position-relative">
+                                    <input type="password" class="form-control" id="password" required placeholder="Enter password">
+                                    <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3 d-flex justify-content-between align-items-center">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="rememberMe">
+                                    <label class="form-check-label small" for="rememberMe">Remember me</label>
+                                </div>
+                                <a href="login.html" class="text-primary small">More options</a>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 mb-3" id="loginBtn">
+                                <span id="loginBtnText"><i class="fas fa-sign-in-alt"></i> Login Now</span>
+                                <span class="spinner-border spinner-border-sm d-none" id="loginSpinner"></span>
+                            </button>
+                            
+                            <div class="text-center mb-3">
+                                <p class="mb-0 text-muted small">New user? <a href="register.html" class="text-primary fw-bold">Create Account</a></p>
+                                <p class="mb-0 text-muted small">or use <a href="login.html" class="text-primary">Full Login Page</a></p>
+                            </div>
+                            
+                            <div class="alert alert-info py-2 mb-0">
+                                <small>
+                                    <strong><i class="fas fa-info-circle"></i> Demo:</strong> 
+                                    <strong>admin</strong> / <strong>admin123</strong>
+                                </small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5" style="background: white;">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-4 fw-bold">Powerful Features</h2>
+                <p class="lead text-muted">Everything you need to manage your finances</p>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <i class="fas fa-chart-line feature-icon"></i>
+                        <h4>Smart Analytics</h4>
+                        <p class="text-muted">Visualize your spending patterns with interactive charts and graphs</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <i class="fas fa-brain feature-icon" style="color: #8B5CF6;"></i>
+                        <h4>AI Predictions</h4>
+                        <p class="text-muted">Machine learning algorithms predict your future expenses accurately</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <i class="fas fa-wallet feature-icon" style="color: #10B981;"></i>
+                        <h4>Budget Management</h4>
+                        <p class="text-muted">Set budgets and receive alerts when you exceed limits</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <i class="fas fa-file-invoice feature-icon" style="color: #F59E0B;"></i>
+                        <h4>Expense Tracking</h4>
+                        <p class="text-muted">Track all your expenses with detailed categorization</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <i class="fas fa-download feature-icon" style="color: #EF4444;"></i>
+                        <h4>Reports Export</h4>
+                        <p class="text-muted">Generate and export reports in PDF, Excel, and CSV formats</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card text-center">
+                        <i class="fas fa-mobile-alt feature-icon" style="color: #EC4899;"></i>
+                        <h4>Responsive Design</h4>
+                        <p class="text-muted">Access from any device - desktop, tablet, or mobile</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-5" style="background: #F9FAFB;">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h2 class="display-5 fw-bold mb-4">About This Project</h2>
+                    <p class="lead mb-3">BCA 6th Semester Project II - Tribhuvan University</p>
+                    <p class="text-muted mb-3">This Expense Management System is developed as a final year project implementing Iterative Development methodology. The system uses modern web technologies and machine learning algorithms to provide intelligent expense tracking and prediction.</p>
+                    
+                    <div class="mb-3">
+                        <h5><i class="fas fa-check-circle text-success"></i> Technologies Used</h5>
+                        <ul class="text-muted">
+                            <li>Frontend: HTML5, CSS3, Bootstrap 5, JavaScript</li>
+                            <li>Backend: Python, Django, Django REST Framework</li>
+                            <li>Database: MySQL / SQLite</li>
+                            <li>ML: Linear Regression, Weighted Prediction</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h5><i class="fas fa-trophy text-warning"></i> Key Achievements</h5>
+                        <ul class="text-muted">
+                            <li>95% prediction accuracy using ML algorithms</li>
+                            <li>Comprehensive budget management system</li>
+                            <li>Real-time analytics dashboard</li>
+                            <li>Multi-format report generation</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="p-4 bg-white rounded shadow">
+                        <h4 class="mb-4">Project Details</h4>
+                        <table class="table">
+                            <tr>
+                                <td><strong>Project Code:</strong></td>
+                                <td>CAPJ356 - 2026</td>
+                            </tr>
+                            <tr>
+                                <td><strong>University:</strong></td>
+                                <td>Tribhuvan University</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Course:</strong></td>
+                                <td>BCA 6th Semester</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Subject:</strong></td>
+                                <td>Project II</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Methodology:</strong></td>
+                                <td>Iterative Development</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Duration:</strong></td>
+                                <td>12 Weeks (3 months)</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-5" style="background: white;">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold">Get In Touch</h2>
+                <p class="lead text-muted">Have questions? We'd love to hear from you.</p>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-6 mx-auto">
+                    <form class="bg-light p-4 rounded" id="contactForm">
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Message</label>
+                            <textarea class="form-control" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-wallet"></i> Expense Management System</h5>
+                    <p class="text-light">A comprehensive solution for tracking and managing your expenses with AI-powered predictions.</p>
+                </div>
+                <div class="col-md-3">
+                    <h6>Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#features" class="text-light">Features</a></li>
+                        <li><a href="#about" class="text-light">About</a></li>
+                        <li><a href="login.html" class="text-light">Login</a></li>
+                        <li><a href="register.html" class="text-light">Register</a></li>
+                        <li><a href="#contact" class="text-light">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h6>Connect</h6>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-light"><i class="fab fa-facebook fa-2x"></i></a>
+                        <a href="#" class="text-light"><i class="fab fa-twitter fa-2x"></i></a>
+                        <a href="#" class="text-light"><i class="fab fa-linkedin fa-2x"></i></a>
+                        <a href="#" class="text-light"><i class="fab fa-github fa-2x"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr style="border-color: rgba(255,255,255,0.2);">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2026 Expense Management System. BCA 6th Semester Project - Tribhuvan University</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="core.js"></script>
+    <script>
+// Password toggle
+document.getElementById('togglePassword')?.addEventListener('click', function() {
+    const password = document.getElementById('password');
+    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+    password.setAttribute('type', type);
+    this.classList.toggle('fa-eye');
+    this.classList.toggle('fa-eye-slash');
+});
+
+(function initIndexPage() {
+    let attempts = 0;
+    const maxAttempts = 50;
+    
+    function checkAndInit() {
+        attempts++;
+        
+        if (window.AppCore && window.AppCore.auth && window.AppCore.NotificationManager) {
+            console.log('✓ AppCore detected, initializing index page...');
+            initializePage();
+            return;
+        }
+        
+        if (attempts < maxAttempts) {
+            setTimeout(checkAndInit, 100);
+        } else {
+            console.error('AppCore failed to load');
+        }
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', checkAndInit);
+    } else {
+        checkAndInit();
+    }
+})();
+
+function initializePage() {
+    const { auth, NotificationManager } = window.AppCore;
+    
+    const loginCardContainer = document.getElementById('loginCardContainer');
+    
+    // Check if already logged in
+    if (auth.isAuthenticated()) {
+        loginCardContainer.innerHTML = `
+            <div class="text-center">
+                <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
+                <h4 class="mt-3">Already Logged In!</h4>
+                <p class="text-muted">You're logged in as <strong>${auth.getUser()?.username || 'User'}</strong></p>
+                <a href="dashboard.html" class="btn btn-primary mb-2 w-100">Go to Dashboard</a>
+                <button onclick="window.AppCore.auth.logout()" class="btn btn-outline-danger w-100">Logout</button>
+            </div>
+        `;
+        return;
+    }
+    
+    // Attach login handler
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
+    
+    // Contact form handler
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            NotificationManager.success('Thank you for your message! We will get back to you soon.');
+            e.target.reset();
+        });
+    }
+    
+    // Smooth scrolling
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+}
+
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    if (!window.AppCore) {
+        alert('System is loading. Please try again in a moment.');
+        return;
+    }
+    
+    const { auth, NotificationManager } = window.AppCore;
+    
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const rememberMe = document.getElementById('rememberMe').checked;
+    
+    const loginBtn = document.getElementById('loginBtn');
+    const loginBtnText = document.getElementById('loginBtnText');
+    const loginSpinner = document.getElementById('loginSpinner');
+    
+    // Show loading state
+    loginBtn.disabled = true;
+    loginBtnText.classList.add('d-none');
+    loginSpinner.classList.remove('d-none');
+    
+    try {
+        const result = await auth.login(username, password, rememberMe);
+        
+        if (result.success) {
+            NotificationManager.success('Login successful! Redirecting to dashboard...');
+            
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1000);
+        } else {
+            NotificationManager.error(result.error || 'Login failed. Please check your credentials.');
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        NotificationManager.error('Network error. Please make sure the backend server is running.');
+    } finally {
+        // Reset button state
+        loginBtn.disabled = false;
+        loginBtnText.classList.remove('d-none');
+        loginSpinner.classList.add('d-none');
+    }
+}
+    </script>
+</body>
+</html>
