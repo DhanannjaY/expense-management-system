@@ -89,22 +89,36 @@
             font-size: 24px;
             color: white;
         }
+        .budget-card .mb-3:has(.d-flex) {
+            background: #F9FAFB;
+            padding: 12px;
+            border-radius: 8px;
+        }
         .progress-custom {
-            height: 25px;
+            height: 32px;
             border-radius: 12px;
             background: #E5E7EB;
-            overflow: hidden;
+            overflow: visible;
             position: relative;
         }
         .progress-bar-custom {
             height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 12px;
+            border-radius: 12px 0 0 12px;
             transition: width 0.6s ease;
+            min-width: 3%;
+            position: relative;
+        }
+        .progress-text-overlay {
+            position: absolute;
+            width: 100%;
+            left: 0;
+            text-align: center;
+            color: #374151;
+            font-weight: 600;
+            font-size: 11px;
+            line-height: 32px;
+            pointer-events: none;
+            z-index: 2;
         }
         .status-badge {
             padding: 6px 12px;
@@ -614,7 +628,8 @@
                                 </div>
 
                                 <div class="progress-custom mb-3">
-                                    <div class="progress-bar-custom" style="width: ${Math.min(percentage, 100)}%; background: ${progressColor};">
+                                    <div class="progress-bar-custom" style="width: ${Math.min(percentage, 100)}%; background: ${progressColor};"></div>
+                                    <div class="progress-text-overlay">   
                                         ${Utils.formatCurrency(budget.spent_amount)} / ${Utils.formatCurrency(budget.budget_amount)}
                                     </div>
                                 </div>
