@@ -434,8 +434,7 @@
             // Load categories
             async function loadCategories() {
                 try {
-                    const data = await api.get('/categories/');
-                    categories = data.results || data;
+                    categories = await CategoryLoader.load(['budgetCategory'], 'Select Category');
                     
                     const select = document.getElementById('budgetCategory');
                     select.innerHTML = '<option value="">Select Category</option>' + 

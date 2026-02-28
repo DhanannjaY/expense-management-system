@@ -13,7 +13,8 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 
 from expenses.models import Expense, Budget, UserPreference, Category
-from expenses.serializers import ExpenseSerializer, BudgetSerializer, CategorySerializer
+from expenses.serializers import (ExpenseSerializer, BudgetSerializer, CategorySerializer, UserSerializer, UserPreferenceSerializer)
+from expenses.ml_predictions import ExpensePrediction
 
 import re
 
@@ -317,34 +318,102 @@ class CategoryViewSet(viewsets.ModelViewSet):
         # Don't save user for categories
         serializer.save()
 
+# ================= USER PREFERENCE VIEWSET =================
+class UserPreferenceViewSet(viewsets.ModelViewSet):
+    serializer_class = UserPreferenceSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        return UserPreference.objects.filter(user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        pref, _ = UserPreference.objects.get_or_create(user=request.user)
+        return Response(UserPreferenceSerializer(pref).data)
+
+    def update(self, request, *args, **kwargs):
+        pref, _ = UserPreference.objects.get_or_create(user=request.user)
+        serializer = UserPreferenceSerializer(pref, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+
+# ================= USER VIEWSET =================
+class UserViewSet(viewsets.ModelViewSet):
+    serializer_class = UserSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return User.objects.filter(id=self.request.user.id)
+
+    def get_object(self):
+        return self.request.user
+    
 # ================= ANALYTICS ENDPOINTS =================
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def expense_predictions(request):
-    """Simple expense prediction based on historical data"""
-    # Get last 3 months of expenses
-    end_date = timezone.now().date()
-    start_date = end_date - timedelta(days=90)
-    
-    expenses = Expense.objects.filter(
-        user=request.user,
-        date__gte=start_date,
-        date__lte=end_date
+    """ML-powered prediction using Linear Regression + Weighted Algorithm"""
+    prediction_days = int(request.query_params.get('days', 7))
+    category_id = request.query_params.get('category', None)
+    category = None
+    if category_id:
+        try:
+            category = Category.objects.get(id=category_id)
+        except Category.DoesNotExist:
+            pass
+    prediction = ExpensePrediction.predict_expenses(
+        request.user, prediction_days, category
     )
-    
-    # Calculate monthly average
-    monthly_avg = expenses.aggregate(
-        total=Sum('amount')
-    )['total'] or 0
-    monthly_avg = float(monthly_avg) / 3  # Average over 3 months
-    
-    # Simple prediction: next month will be similar to average
-    predictions = {
-        'next_month_prediction': round(monthly_avg, 2),
-        'confidence': 'medium',
-        'based_on_days': 90,
-        'message': 'Prediction based on 3-month average spending'
-    }
-    
+    return Response(prediction)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def monthly_forecast(request):
+    """Full monthly forecast with weekly breakdown and per-category predictions"""
+    forecast = ExpensePrediction.get_monthly_forecast(request.user)
+    return Response(forecast)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def category_predictions(request):
+    """Per-category predictions"""
+    prediction_days = int(request.query_params.get('days', 7))
+    predictions = ExpensePrediction.get_category_predictions(
+        request.user, prediction_days
+    )
     return Response(predictions)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    """Change user password — called by settings.html"""
+    current  = request.data.get('current_password', '')
+    new_pw   = request.data.get('new_password', '')
+    confirm  = request.data.get('confirm_password', '')
+
+    if not current or not new_pw:
+        return Response({'success': False, 'error': 'All fields are required'},
+                        status=status.HTTP_400_BAD_REQUEST)
+    if not request.user.check_password(current):
+        return Response({'success': False, 'error': 'Current password is incorrect'},
+                        status=status.HTTP_400_BAD_REQUEST)
+    if len(new_pw) < 6:
+        return Response({'success': False, 'error': 'New password must be at least 6 characters'},
+                        status=status.HTTP_400_BAD_REQUEST)
+    if new_pw != confirm:
+        return Response({'success': False, 'error': 'New passwords do not match'},
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    request.user.set_password(new_pw)
+    request.user.save()
+    # Re-issue token so user stays logged in
+    request.user.auth_token.delete()
+    token = Token.objects.create(user=request.user)
+    return Response({'success': True, 'message': 'Password changed successfully',
+                     'token': token.key})

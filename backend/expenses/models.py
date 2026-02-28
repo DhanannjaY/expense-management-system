@@ -28,6 +28,8 @@ class Expense(models.Model):
     """Main expense model"""
     PAYMENT_CHOICES = [
         ('cash', 'Cash'),
+        ('esewa', 'eSewa'),
+        ('khalti', 'Khalti'),
         ('card', 'Credit/Debit Card'),
         ('netbanking', 'Net Banking'),
         ('other', 'Other')
@@ -52,8 +54,7 @@ class Expense(models.Model):
         ordering = ['-date', '-created_at']
     
     def __str__(self):
-        return f"{self.title} - ₹{self.amount}"
-
+        return f"{self.title} - Rs.{self.amount}"
 
 class Budget(models.Model):
     """Budget model for expense limits"""
@@ -80,7 +81,7 @@ class Budget(models.Model):
         unique_together = ['user', 'category', 'period']
     
     def __str__(self):
-        return f"{self.category.name} - ₹{self.amount} ({self.period})"
+        return f"{self.category.name} - Rs.{self.amount} ({self.period})"
     
 class UserPreference(models.Model):
     """User preferences and settings"""

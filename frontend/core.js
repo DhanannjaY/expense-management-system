@@ -699,6 +699,34 @@ const auth = new AuthManager();
 const cache = new CacheManager();
 const api = new APIManager(auth, cache);
 
+// ================= CATEGORY LOADER =================
+const CategoryLoader = {
+    _cache: null,
+
+    async load(selectIds = [], defaultLabel = 'Select Category') {
+        try {
+            if (!this._cache) {
+                const data = await api.get('/categories/');
+                this._cache = data.results || data;
+            }
+            selectIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.innerHTML = `<option value="">${defaultLabel}</option>` +
+                    this._cache.map(c =>
+                        `<option value="${c.id}">${Utils.escapeHtml(c.name)}</option>`
+                    ).join('');
+            });
+            return this._cache;
+        } catch (err) {
+            ErrorHandler.handle(err, 'Load Categories');
+            return [];
+        }
+    },
+
+    clearCache() { this._cache = null; }
+};
+
 window.AppCore = {
     auth,
     cache,
@@ -708,7 +736,8 @@ window.AppCore = {
     LoadingManager,
     ErrorHandler,
     Utils,
-    CONFIG
+    CONFIG,
+    CategoryLoader
 };
 
 // ================= PAGE GUARD =================

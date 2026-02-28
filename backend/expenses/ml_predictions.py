@@ -206,7 +206,7 @@ class ExpensePrediction:
             # Confidence
             if r_squared > 0.7 and variance < (avg_daily ** 2):
                 confidence = 'high'
-            elif r_squared > 0.4 or variance < (avg_daily ** 2 * 2):
+            elif r_squared > 0.4 and variance < (avg_daily ** 2 * 2):
                 confidence = 'medium'
             else:
                 confidence = 'low'

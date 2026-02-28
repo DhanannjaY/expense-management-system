@@ -189,7 +189,7 @@
                         <i class="fas fa-brain fa-3x"></i>
                     </div>
                     <h5>AI Prediction - Next Month</h5>
-                    <div class="prediction-value" id="predictionNextMonth">₹0</div>
+                    <div class="prediction-value" id="predictionNextMonth">Rs. 0</div>
                     <div class="confidence-badge">
                         <i class="fas fa-chart-line"></i>
                         <span id="confidenceLevel">Calculating...</span>
@@ -206,7 +206,7 @@
                         <i class="fas fa-calendar-alt fa-3x"></i>
                     </div>
                     <h5>Spending Insights</h5>
-                    <div class="prediction-value" id="averageDaily">₹0</div>
+                    <div class="prediction-value" id="averageDaily">Rs. 0</div>
                     <div class="confidence-badge mb-2">
                         <i class="fas fa-chart-bar"></i>
                         <span>Daily Average</span>
@@ -241,13 +241,13 @@
                     <h5><i class="fas fa-balance-scale"></i> Spending Analysis</h5>
                     <p class="small mb-3">Statistical breakdown of your expenses</p>
                     <div class="algorithm-badge">
-                        <strong>Total Expenses:</strong> <span id="totalExpensesAnalytics">₹0</span>
+                        <strong>Total Expenses:</strong> <span id="totalExpensesAnalytics">Rs. 0</span>
                     </div>
                     <div class="algorithm-badge">
                         <strong>Transaction Count:</strong> <span id="transactionCount">0</span>
                     </div>
                     <div class="algorithm-badge">
-                        <strong>Avg per Transaction:</strong> <span id="avgPerTransaction">₹0</span>
+                        <strong>Avg per Transaction:</strong> <span id="avgPerTransaction">Rs. 0</span>
                     </div>
                     <p class="small mt-3 mb-0">
                         <i class="fas fa-info-circle"></i> Based on selected time period
@@ -285,15 +285,15 @@
                     <div class="mb-3">
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">Daily Average</span>
-                            <strong id="dailyAvg">₹0</strong>
+                            <strong id="dailyAvg">Rs. 0</strong>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">Weekly Average</span>
-                            <strong id="weeklyAvg">₹0</strong>
+                            <strong id="weeklyAvg">Rs. 0</strong>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">Monthly Average</span>
-                            <strong id="monthlyAvg">₹0</strong>
+                            <strong id="monthlyAvg">Rs. 0</strong>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted">Highest Day</span>
@@ -569,7 +569,7 @@ const AnalyticsApp = (function() {
         
         if (!daily.length) {
             ['dailyAvg', 'weeklyAvg', 'monthlyAvg'].forEach(id => 
-                document.getElementById(id).textContent = '₹0'
+                document.getElementById(id).textContent = 'Rs. 0'
             );
             return;
         }
@@ -672,7 +672,7 @@ const AnalyticsApp = (function() {
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            callback: (val) => '₹' + val.toLocaleString()
+                            callback: (val) => 'Rs. ' + val.toLocaleString()
                         }
                     }
                 }
@@ -723,7 +723,7 @@ const AnalyticsApp = (function() {
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            callback: (val) => '₹' + val.toLocaleString()
+                            callback: (val) => 'Rs. ' + val.toLocaleString()
                         }
                     }
                 }
@@ -768,7 +768,7 @@ const AnalyticsApp = (function() {
                         type: 'linear',
                         position: 'left',
                         ticks: {
-                            callback: (val) => '₹' + val.toLocaleString()
+                            callback: (val) => 'Rs. ' + val.toLocaleString()
                         }
                     },
                     y1: {

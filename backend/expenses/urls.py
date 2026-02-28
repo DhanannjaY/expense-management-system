@@ -8,6 +8,8 @@ router = DefaultRouter()
 router.register(r'categories', views.CategoryViewSet, basename='category')
 router.register(r'expenses', views.ExpenseViewSet, basename='expense')
 router.register(r'budgets', views.BudgetViewSet, basename='budget')
+router.register(r'preferences', views.UserPreferenceViewSet, basename='preference')
+router.register(r'users', views.UserViewSet, basename='user')
 
 urlpatterns = [
     # Authentication endpoints (function-based views)
@@ -18,6 +20,8 @@ urlpatterns = [
     
     # Analytics endpoints
     path('analytics/predictions/', views.expense_predictions, name='predictions'),
+    path('analytics/monthly-forecast/',    views.monthly_forecast,     name='monthly_forecast'),
+    path('analytics/category-predictions/',views.category_predictions, name='category_predictions'),
     
     # Include router URLs (ViewSet routes)
     # This provides:
