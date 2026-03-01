@@ -9,11 +9,11 @@
 #      expenses/management/commands/__init__.py
 #
 #   3. Place your CSV file anywhere, then run:
-#      python manage.py import_dataset --file expense_dataset_250_clean.csv --username testuser
+#      python manage.py import_dataset --file expense_dataset_250_clean.csv --username testuser001 --clear
 #
 #   Optional flags:
 #      --file      path to your CSV (default: expense_dataset_250_clean.csv)
-#      --username  which user to import expenses for (default: testuser)
+#      --username  which user to import expenses for (default: testuser001)
 #      --clear     add this flag to delete existing expenses for that user first
 
 import csv
@@ -90,8 +90,8 @@ class Command(BaseCommand):
         parser.add_argument(
             '--username',
             type=str,
-            default='testuser',
-            help='Username to assign expenses to (default: testuser)'
+            default='testuser001',
+            help='Username to assign expenses to (default: testuser001)'
         )
         parser.add_argument(
             '--clear',
@@ -249,5 +249,5 @@ class Command(BaseCommand):
         self.stdout.write(
             f'\n🚀 Done! Login as "{username}" to see the data in your app.'
         )
-        if user.username == 'testuser':
+        if user.username == 'testuser001':
             self.stdout.write(f'   Password: testpass123')

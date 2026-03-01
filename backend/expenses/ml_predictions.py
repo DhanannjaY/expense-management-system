@@ -20,7 +20,7 @@ from django.db.models import Sum
 from decimal import Decimal
 
 
-# Time windows and their weights — matches report Section 3.3
+# Time windows and their weights for the multi-window prediction
 PREDICTION_WINDOWS = [
     (90,  0.5),   # 3-month  — highest weight (most recent)
     (180, 0.3),   # 6-month
