@@ -576,4 +576,4 @@ BCA 6th Semester | VS International College
 
 ---
 
-*Made with ❤️ for BCA Project II — Tribhuvan University, Nepal 🇳🇵*
+*Made with ❤️ for BCA Project II — Tribhuvan University, Nepal*
