@@ -1,4 +1,4 @@
-# 💰 Expense Management System
+# 💰 Expense Management System (EMS)
 
 > **AI-Powered Personal Finance Manager**  
 > BCA 6th Semester Project II | Tribhuvan University, Nepal
@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/License-Academic-orange.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Complete-success.svg)]()
 
-**Developed by:** Dhananjay Sah · Aanchal Manandhar  
+**Developed by:** Dhananjay Sah  
 **College:** VS International College, Minbhawan, Kathmandu  
 **Supervisor:** Mr. Santosh Pokharel  
 **Program:** Bachelor of Computer Application (BCA) — Tribhuvan University  
@@ -36,141 +36,135 @@
 
 ## 🎯 Overview
 
-The **Expense Management System (EMS)** is a comprehensive web-based application that centralizes personal financial management through intelligent expense tracking, budget monitoring, data visualization, and ML-powered expense forecasting.
+The **Expense Management System (EMS)** is a full-stack personal finance web application that centralizes expense tracking, category budgeting, savings goal milestones, interactive data visualization, and ML-powered spending forecasts.
 
-Built as the capstone **Project-II** for the BCA program at Tribhuvan University, the system is designed specifically for the **Nepalese context** — supporting NPR currency and local digital payment methods including eSewa and Khalti.
+Built as the capstone **Project-II** for the BCA program at Tribhuvan University, the system is tailored for the **Nepalese context** — defaulting to **NPR (`Rs.`)** currency and local digital wallets (**eSewa**, **Khalti**) while also supporting international currencies (**USD**, **EUR**, **INR**, **GBP**).
 
 ### Problem Statement
 
 Individuals — particularly students and young professionals — struggle with:
-- ❌ Fragmented expense records across multiple platforms
-- ❌ No real-time spending visibility or pattern awareness
+
+- ❌ Fragmented expense records across cash, mobile wallets, and bank cards
+- ❌ No real-time spending visibility, tagging, or pattern awareness
 - ❌ Lack of predictive insights for future financial planning
-- ❌ Manual and error-prone budget tracking
-- ❌ No single tool that combines tracking, analysis, and forecasting
+- ❌ Manual and error-prone budget and savings goal tracking
+- ❌ No single lightweight tool combining tracking, analysis, and forecasting
 
 ### Our Solution
 
-✅ **Centralized Platform** — Track all expenses in one place  
-✅ **Real-time Analytics** — Interactive dashboards with Chart.js visualizations  
-✅ **AI Predictions** — Multi-window Linear Regression forecasting  
-✅ **Smart Budgets** — Category-specific budgets with proactive alerts  
-✅ **Secure Authentication** — Token-based security with PBKDF2-SHA256  
-✅ **Multi-format Reports** — PDF, CSV, and HTML exports  
-✅ **Nepal-specific** — NPR currency, eSewa, Khalti, local expense categories  
+- ✅ **Centralized Ledger** — Track expenses with tags, receipt notes, and recurring schedules
+- ✅ **Real-Time Analytics** — Interactive Chart.js dashboards and automated spending insights
+- ✅ **AI Forecasting** — Multi-window Ordinary Least Squares (OLS) Linear Regression
+- ✅ **Smart Budgets** — Category-specific budgets with configurable alert thresholds
+- ✅ **Savings Goals** — Milestone tracking with incremental deposits and progress bars
+- ✅ **Portable Reports** — CSV, Excel (`.xls`), JSON, and print-ready PDF exports
+- ✅ **Nepal-Ready + Global** — NPR (`Rs.`), eSewa, Khalti, plus USD, EUR, INR, and GBP
 
 ---
 
 ## ✨ Key Features
 
 ### 🔐 Authentication & Security
-- Secure user registration with real-time validation
-- Token-based authentication (Django REST Framework)
-- Password hashing: PBKDF2-SHA256
-- CSRF & XSS protection
-- Per-user data isolation — users cannot access each other's data
+
+- User registration and login with client- and server-side validation
+- Token-based authentication via Django REST Framework (`Authorization: Token <key>`)
+- Password hashing using Django's **PBKDF2-SHA256**
+- Strict per-user data isolation across expenses, budgets, tags, and savings goals
+- Password-verified account deletion (`DELETE /api/users/{id}/`)
 
 ### 💸 Expense Management
-- **CRUD Operations** — Add, edit, delete expenses
-- **12 Categories** — Bills, Bills & Utilities, Education, Entertainment, Food, Food & Dining, Healthcare, Housing, Others, Personal Care, Shopping, Transportation
-- **6 Payment Methods** — Cash, eSewa, Khalti, Credit Card, Debit Card, Net Banking
-- **Advanced Filters** — Date range, category, amount, payment method
-- **Real-time Search** — With debouncing for performance
-- **Bulk Delete** — Select and remove multiple expenses
+
+- **Full CRUD & Bulk Actions** — Add, edit, delete, and bulk-delete transactions
+- **Custom Tags & Receipt Notes** — Organize transactions with user-scoped `#tags`, locations, and receipt notes
+- **Recurring Expense Automation** — Schedule daily, weekly, monthly, or yearly expenses that materialize automatically when due
+- **12 Default Categories** — Bills, Bills & Utilities, Education, Entertainment, Food, Food & Dining, Healthcare, Housing, Others, Personal Care, Shopping, Transportation
+- **6 Payment Channels** — Cash, eSewa, Khalti, Credit Card, Debit Card, Net Banking
+- **Advanced Filtering** — Filter by period, custom date range, category, tag, payment method, and debounced search
 
 ### 📊 Budget Management
-- Category-specific budgets (Weekly / Monthly / Yearly)
-- Configurable alert thresholds (50–100%, default 80%)
-- Real-time budget vs. actual comparison
-- Color-coded status indicators:
-  - 🟢 **Safe** (< 80% used)
-  - 🟡 **Warning** (80–100% used)
-  - 🔴 **Over Budget** (> 100% used)
 
-### 📈 Analytics Dashboard
-- **Summary Stats** — Total expenses, transaction count, daily average
-- **Interactive Charts**:
-  - 📈 Line Chart — 7-day expense trend
-  - 🍩 Doughnut Chart — Category distribution
-  - 📊 Bar Chart — Day-of-week spending patterns
-  - 📊 Bar Chart — Category-wise analysis (amount + count)
+- Category-specific budgets (**Weekly / Monthly / Yearly**)
+- Configurable alert thresholds (**50%–100%**, default **80%**)
+- Real-time budget vs. actual spending analysis with status indicators:
+  - 🟢 **On Track** (`< threshold`)
+  - 🟡 **Near Limit** (`≥ threshold` and `≤ 100%`)
+  - 🔴 **Over Budget** (`> 100%`)
 
-### 🤖 ML-Powered Predictions
-- **Algorithm** — Multi-window Linear Regression (pure Python, no NumPy)
-- **3 Time Windows** — 3-month (weight: 0.5), 6-month (weight: 0.3), 12-month (weight: 0.2)
-- **Confidence Scoring** — High / Medium / Low based on R² metric
-- **Trend Detection** — Increasing / Decreasing / Stable
-- **Category Forecasts** — Per-category predictions
-- **Monthly Forecast** — Weekly breakdown with confidence levels
+### 🎯 Savings Goals
 
-### 📄 Report Generation
-- **4 Templates** — Summary, Detailed, Budget Analysis, Category Breakdown
-- **3 Export Formats** — PDF (print-to-PDF), CSV, HTML
-- **Customizable** — Date ranges and period selection
+- Create dedicated savings targets with optional target deadlines and notes
+- One-click **Add Funds** deposits with automatic completion status updates
+- Visual progress bars, remaining balance, and days-remaining countdowns
 
-### ⚙️ User Settings
-- Profile management (name, email)
-- Password change
-- Currency preference (NPR / USD / EUR)
-- Theme selection (Light / Dark)
-- Notification preferences
+### 📈 Analytics & AI Forecasting
+
+- **Interactive Charts (Chart.js 4)**:
+  - 📈 Spending Timeline (daily trend)
+  - 📊 Spending by Day of Week
+  - 📊 Horizontal Category Distribution
+  - 🍩 Payment Method Breakdown
+- **Multi-Window Linear Regression (Pure Python, No NumPy)**:
+  - Combines **3-month** (weight `0.5`), **6-month** (weight `0.3`), and **12-month** (weight `0.2`) windows
+  - Computes **R² confidence scores**, min–max confidence intervals, and trend direction (`increasing`, `decreasing`, `stable`)
+  - Supports 14-day, 30-day, and 90-day forecast horizons plus per-category predictions
+
+### 📄 Reports & Settings
+
+- **Report Exports** — Period and category-filtered reports exportable to **CSV**, **Excel (`.xls`)**, **JSON**, and **Print / PDF**
+- **Full Account Backup** — One-click JSON export of all expenses, budgets, tags, and savings goals
+- **Personalization** — Live currency switching (**NPR**, **USD**, **EUR**, **INR**, **GBP**) and theme switching (**Light**, **Dark**, **System**)
 
 ---
 
 ## 🛠 Technology Stack
 
 ### Frontend
+
 | Technology | Version | Purpose |
 |---|---|---|
-| HTML5 | — | Semantic markup |
-| CSS3 | — | Responsive styling |
-| JavaScript | ES6+ | Client-side logic |
-| Bootstrap | 5.3 | UI framework |
-| Chart.js | 4.x | Data visualization |
-| Font Awesome | 6.4 | Icons |
+| HTML5 | — | Semantic multi-page architecture (`index`, `dashboard`, `expenses`, `budget`, `savings`, `analytics`, `reports`, `settings`) |
+| CSS3 | — | Custom design system (`assets/css/main.css`) with Light/Dark/System theme tokens |
+| JavaScript | ES6+ | Modular `AppCore` (`core.js`) with API caching, request deduplication, and auth guards |
+| Chart.js | 4.4 | Interactive line, bar, and doughnut charts |
+| Google Fonts | — | `DM Sans` (UI typography) & `DM Mono` (tabular financial figures) |
+| Font Awesome | 6.4 | Vector iconography |
 
 ### Backend
+
 | Technology | Version | Purpose |
 |---|---|---|
-| Python | 3.11+ | Programming language |
-| Django | 5.0 | Web framework |
-| Django REST Framework | 3.14 | API development |
-| SQLite | 3 | Development database |
-
-### Development Tools
-| Tool | Purpose |
-|---|---|
-| VS Code | Primary IDE |
-| Git & GitHub | Version control |
-| Postman | API testing |
-| Draw.io | System diagrams |
-| DB Browser for SQLite | Database inspection |
+| Python | 3.11+ | Core runtime & pure-Python ML engine |
+| Django | 5.0 | Web framework & ORM |
+| Django REST Framework | 3.14 | RESTful API & token authentication |
+| django-cors-headers | 4.x | Cross-origin frontend/backend communication |
+| SQLite | 3 | Relational database |
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Python 3.10+
-- pip (latest)
-- Git
-- Web browser (Chrome / Firefox / Edge)
+- `pip` & Git
+- Modern web browser (Chrome / Firefox / Edge)
 
 ### Installation
 
 **1. Clone Repository**
+
 ```bash
 git clone https://github.com/dhananjaysah46/expense-management-system.git
 cd expense-management-system
 ```
 
 **2. Backend Setup**
+
 ```bash
 cd backend
 
 # Create and activate virtual environment
 python -m venv venv
-
 # Windows:
 venv\Scripts\activate
 # macOS/Linux:
@@ -179,78 +173,85 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Database setup
+# Apply database migrations
 python manage.py makemigrations
 python manage.py migrate
 
-# Create superuser (for admin panel)
+# Optional: create admin superuser
 python manage.py createsuperuser
 
-# Run development server
+# Start Django API server
 python manage.py runserver
 ```
 
-**3. Import Sample Dataset (250 records)**
+**3. Import Sample Dataset (250 Records)**
+
 ```bash
-# Creates testuser + imports 250 expense records (Dec 2025 – Feb 2026)
+# Creates testuser + imports 250 sample expense records
 python manage.py import_dataset --username testuser
 
-# To re-import fresh data:
+# To reset and re-import fresh data:
 python manage.py import_dataset --username testuser --clear
 ```
 
 **4. Frontend Setup**
+
 ```bash
-cd frontend
+cd ../frontend
 python -m http.server 5500
 ```
 
 **5. Access Application**
-| Page | URL |
-|---|---|
-| Frontend | http://localhost:5500/index.html |
-| Dashboard | http://localhost:5500/dashboard.html |
-| Admin Panel | http://localhost:8000/admin |
-| API Root | http://localhost:8000/api/ |
 
-**Test Credentials**
-```
-Username: testuser
-Password: testpass123
-```
+| Interface | URL |
+|---|---|
+| Landing Page | http://localhost:5500/index.html |
+| Dashboard | http://localhost:5500/dashboard.html |
+| Django Admin | http://localhost:8000/admin/ |
+| REST API Root | http://localhost:8000/api/ |
+
+**Demo Credentials**
+
+- **Username:** `testuser`
+- **Password:** `testpass123`
 
 ---
 
 ## 📁 Project Structure
 
-```
-expense_management_system/
+```text
+expense-management-system/
 ├── backend/
 │   ├── manage.py
 │   ├── requirements.txt
-│   ├── expense_dataset_250_clean.csv     ← sample dataset
-│   ├── expense-project/
-│   │   └── settings.py
+│   ├── expense_dataset_250_clean.csv     ← Sample dataset
+│   ├── expense_project/
+│   │   └── settings.py                   ← Django & DRF settings
 │   └── expenses/
-│       ├── models.py                     ← Category, Expense, Budget, UserPreference
-│       ├── views.py                      ← ViewSets + API views
-│       ├── serializers.py                ← DRF serializers
-│       ├── urls.py                       ← URL routing
-│       ├── ml_predictions.py             ← ML engine (Linear Regression)
-│       ├── tests.py                      ← Unit + system tests
+│       ├── models.py                     ← Category, Tag, Expense, Budget, SavingsGoal, UserPreference
+│       ├── serializers.py                ← DRF serializers & validation
+│       ├── views.py                      ← ViewSets, analytics, auth & recurring logic
+│       ├── urls.py                       ← API route definitions
+│       ├── ml_predictions.py             ← Multi-window OLS Linear Regression engine
+│       ├── tests.py                      ← Automated unit, system & security test suite
 │       └── management/
 │           └── commands/
-│               └── import_dataset.py     ← CSV import command
+│               └── import_dataset.py     ← CSV dataset importer
 ├── frontend/
-│   ├── dashboard.html
-│   ├── expenses.html
-│   ├── budget.html
-│   ├── analytics.html
-│   ├── reports.html
-│   ├── settings.html
-│   ├── login.html
-│   ├── register.html
-│   └── core.js                           ← Shared utilities, API manager, CategoryLoader
+│   ├── index.html                        ← Landing page with live interactive preview
+│   ├── login.html                        ← User sign-in
+│   ├── register.html                     ← User registration
+│   ├── dashboard.html                    ← Main overview, KPIs & quick-add expense
+│   ├── expenses.html                     ← Full ledger, tags, filters & bulk delete
+│   ├── budget.html                       ← Category budgets & threshold progress
+│   ├── savings.html                      ← Savings goals & deposit tracker
+│   ├── analytics.html                    ← Charts, smart insights & AI forecast
+│   ├── reports.html                      ← Custom report builder & CSV/Excel/JSON/PDF export
+│   ├── settings.html                     ← Profile, currency, theme, password & backup
+│   ├── core.js                           ← AuthManager, APIManager, CacheManager, ThemeManager & Utils
+│   └── assets/
+│       └── css/
+│           └── main.css                  ← EMS design tokens, responsive layout & dark mode
 └── README.md
 ```
 
@@ -258,68 +259,62 @@ expense_management_system/
 
 ## 🏗 System Architecture
 
-### Three-Tier Architecture
-
-```
-┌──────────────────────────────────────────┐
-│         PRESENTATION LAYER               │
-│   HTML5, CSS3, Bootstrap 5, Chart.js     │
-│   • UI Components & Forms                │
-│   • Client-side Validation               │
-│   • Chart Rendering (Chart.js)           │
-└─────────────────┬────────────────────────┘
-                  │ HTTP/JSON + Token Auth
-                  ↓
-┌──────────────────────────────────────────┐
-│           APPLICATION LAYER              │
-│   Django + Django REST Framework         │
-│   • RESTful API Endpoints                │
-│   • Business Logic & Validation          │
-│   • ML Prediction Engine                 │
-│   • Report Generation                    │
-└─────────────────┬────────────────────────┘
-                  │ Django ORM
-                  ↓
-┌──────────────────────────────────────────┐
-│             DATA LAYER                   │
-│            SQLite Database               │
-│   • Persistent Storage                   │
-│   • Relational Data (5 models)           │
-└──────────────────────────────────────────┘
+```text
+┌──────────────────────────────────────────────────────────┐
+│                   PRESENTATION LAYER                     │
+│   HTML5, Custom CSS Design System, ES6+, Chart.js 4      │
+│   • Responsive Sidebar & Mobile Drawer                   │
+│   • Client-Side Caching & Request Deduplication          │
+│   • Dynamic Currency & Theme Management                  │
+└────────────────────────────┬─────────────────────────────┘
+                             │ HTTP / JSON + Token Auth
+                             ↓
+┌──────────────────────────────────────────────────────────┐
+│                   APPLICATION LAYER                      │
+│   Django 5 + Django REST Framework                       │
+│   • ViewSets, Filtering & Bulk Operations                │
+│   • Automatic Recurring Expense Materialization          │
+│   • Multi-Window OLS ML Prediction Engine                │
+└────────────────────────────┬─────────────────────────────┘
+                             │ Django ORM
+                             ↓
+┌──────────────────────────────────────────────────────────┐
+│                      DATA LAYER                          │
+│                   SQLite3 Database                       │
+│   • 6 Relational Models with Per-User Isolation          │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## 🗄 Database Schema
 
-### Models
-
 | Model | Key Fields | Relationships |
 |---|---|---|
-| **User** | username, email, password (hashed) | Django built-in |
-| **Category** | name, icon, color | Shared across users |
-| **Expense** | title, amount, date, payment_method | → User, → Category |
-| **Budget** | amount, period, alert_threshold | → User, → Category |
-| **UserPreference** | currency, theme, notifications | → User (OneToOne) |
+| **User** | `username`, `email`, `first_name`, `last_name`, `password` | Django built-in |
+| **Category** | `name`, `icon`, `color`, `description` | Shared across users |
+| **Tag** | `name`, `color` | → User (unique per user) |
+| **Expense** | `title`, `amount`, `date`, `payment_method`, `location`, `receipt_note`, `is_recurring`, `recurring_frequency`, `next_recurring_date` | → User, → Category, ↔ Tag (M2M) |
+| **Budget** | `amount`, `period`, `alert_threshold`, `is_active`, `notes` | → User, → Category |
+| **SavingsGoal** | `title`, `target_amount`, `current_amount`, `target_date`, `status`, `notes` | → User |
+| **UserPreference** | `currency`, `theme`, `enable_budget_alerts`, `enable_notifications` | → User (OneToOne) |
 
-### Payment Methods Supported
+**Supported Payment Methods**
+
 `cash` · `esewa` · `khalti` · `card` · `netbanking` · `other`
 
-### Expense Categories (12)
-`Bills` · `Bills & Utilities` · `Education` · `Entertainment` · `Food` · `Food & Dining` · `Healthcare` · `Housing` · `Others` · `Personal Care` · `Shopping` · `Transportation`
+**Supported Currencies**
+
+`NPR (Rs.)` · `USD ($)` · `EUR (€)` · `INR (₹)` · `GBP (£)`
 
 ---
 
 ## 📡 API Documentation
 
-### Base URL
-```
-Development:  http://localhost:8000/api/
-```
+### Base URL & Authentication
 
-### Authentication
-All protected endpoints require:
 ```http
+Base URL: http://localhost:8000/api/
 Authorization: Token <your_token_here>
 ```
 
@@ -327,253 +322,114 @@ Authorization: Token <your_token_here>
 
 | Method | Endpoint | Description | Auth |
 |---|---|---|---|
-| POST | `/auth/register/` | Register new user | ❌ |
-| POST | `/auth/login/` | User login, returns token | ❌ |
-| POST | `/auth/logout/` | Invalidate token | ✅ |
-| GET | `/auth/verify/` | Verify token validity | ✅ |
-| POST | `/auth/change-password/` | Change password | ✅ |
-| GET/POST | `/expenses/` | List / create expenses | ✅ |
-| GET/PUT/DELETE | `/expenses/{id}/` | Retrieve / edit / delete expense | ✅ |
-| GET | `/expenses/dashboard/` | Dashboard summary stats | ✅ |
-| GET/POST | `/budgets/` | List / create budgets | ✅ |
-| GET/PUT/DELETE | `/budgets/{id}/` | Retrieve / edit / delete budget | ✅ |
-| GET | `/budgets/analysis/` | Budget vs spending analysis | ✅ |
-| GET/POST | `/categories/` | List / create categories | ✅ |
-| GET | `/analytics/predictions/` | ML expense predictions | ✅ |
-| GET | `/analytics/monthly-forecast/` | Monthly forecast + weekly breakdown | ✅ |
-| GET | `/analytics/category-predictions/` | Per-category predictions | ✅ |
-| GET/PUT | `/preferences/` | User preferences | ✅ |
-| GET/PUT | `/users/{id}/` | User profile update | ✅ |
-
-### Example: Create Expense
-
-**Request**
-```http
-POST /api/expenses/
-Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b
-Content-Type: application/json
-
-{
-    "title": "Grocery Shopping",
-    "amount": "2500.00",
-    "category": 1,
-    "date": "2025-12-20",
-    "payment_method": "esewa",
-    "description": "Weekly groceries from Bhatbhateni"
-}
-```
-
-**Response (201 Created)**
-```json
-{
-    "id": 1,
-    "title": "Grocery Shopping",
-    "amount": "2500.00",
-    "category": 1,
-    "category_name": "Food",
-    "date": "2025-12-20",
-    "payment_method": "esewa",
-    "description": "Weekly groceries from Bhatbhateni",
-    "created_at": "2025-12-20T10:30:00Z"
-}
-```
-
-### Example: ML Prediction Response
-
-**Request**
-```http
-GET /api/analytics/predictions/?days=7
-Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b
-```
-
-**Response (200 OK)**
-```json
-{
-    "prediction_days": 7,
-    "recommended_prediction": 24912.49,
-    "confidence": "low",
-    "confidence_score": 0.0821,
-    "trend": "increasing",
-    "algorithms": {
-        "linear_regression": { "daily": 830.42, "total": 5812.91 },
-        "simple_average":    { "daily": 830.42, "total": 5812.91 },
-        "weighted_prediction":{ "daily": 830.42, "total": 5812.91 }
-    },
-    "statistics": {
-        "historical_daily_average": 830.42,
-        "non_zero_days": 91,
-        "windows_used": 1
-    },
-    "window_breakdown": [
-        { "window": "3-month", "days": 90, "weight": 1.0,
-          "lr_daily": 830.42, "r_squared": 0.0821, "non_zero": 91 }
-    ]
-}
-```
+| POST | `/auth/register/` | Register a new user and return auth token | ❌ |
+| POST | `/auth/login/` | Authenticate user and return token + profile | ❌ |
+| POST | `/auth/logout/` | Invalidate current auth token | ✅ |
+| GET | `/auth/verify/` | Verify token validity and fetch current user | ✅ |
+| POST | `/auth/change-password/` | Change password and rotate token | ✅ |
+| GET/POST | `/expenses/` | List (filtered/paginated) or create expenses | ✅ |
+| GET/PUT/PATCH/DELETE | `/expenses/{id}/` | Retrieve, update, or delete an expense | ✅ |
+| POST | `/expenses/bulk-delete/` | Delete multiple expenses by ID list | ✅ |
+| GET | `/expenses/dashboard/` | Dashboard KPIs, trends, and category totals | ✅ |
+| GET/POST | `/budgets/` | List or create category budgets | ✅ |
+| GET/PUT/PATCH/DELETE | `/budgets/{id}/` | Retrieve, update, or delete a budget | ✅ |
+| GET | `/budgets/analysis/` | Real-time budget vs. actual spending breakdown | ✅ |
+| GET/POST | `/savings-goals/` | List or create savings goals | ✅ |
+| GET/PUT/PATCH/DELETE | `/savings-goals/{id}/` | Retrieve, update, or delete a savings goal | ✅ |
+| POST | `/savings-goals/{id}/add_funds/` | Deposit funds into a savings goal | ✅ |
+| GET/POST | `/categories/` | List or create expense categories | ✅ |
+| GET/POST/DELETE | `/tags/` | List, create, or delete user tags | ✅ |
+| GET | `/analytics/overview/` | Period summary, weekly pattern & payment breakdown | ✅ |
+| GET | `/analytics/predictions/` | Multi-window ML expense forecast | ✅ |
+| GET | `/analytics/monthly-forecast/` | Monthly forecast with weekly breakdown | ✅ |
+| GET | `/analytics/category-predictions/` | Per-category spending predictions | ✅ |
+| GET/POST/PUT | `/preferences/` | Retrieve or update user currency & theme preferences | ✅ |
+| GET/PATCH/DELETE | `/users/{id}/` | Update profile or permanently delete account | ✅ |
 
 ---
 
 ## 🤖 Machine Learning
 
-### Algorithm: Multi-Window Linear Regression
+### Multi-Window Linear Regression (Pure Python)
 
-The prediction module implements **two core algorithms** in pure Python without NumPy or Pandas:
+The forecasting engine (`backend/expenses/ml_predictions.py`) uses Ordinary Least Squares (OLS) Linear Regression implemented purely in Python's standard library:
 
----
-
-#### Algorithm 1 — Linear Regression (OLS)
-
-Finds the best-fit line through historical daily expense data using the **Ordinary Least Squares** method.
-
-```
+```text
 y = mx + b
 
 m (slope)     = (n∑xy − ∑x∑y) / (n∑x² − (∑x)²)
 b (intercept) = (∑y − m∑x) / n
 ```
 
----
+Three independent models are trained across rolling historical windows and combined using normalized weights:
 
-#### Algorithm 2 — Multi-Window Weighted Prediction
-
-Three independent LR models are trained on different historical windows and combined:
-
-```
-Final Prediction = (3-month × 0.5) + (6-month × 0.3) + (12-month × 0.2)
-```
-
-| Window | Days | Weight | Rationale |
+| Window | Days | Default Weight | Purpose |
 |---|---|---|---|
-| 3-month | 90 days | **0.5** | Most recent — highest priority |
-| 6-month | 180 days | **0.3** | Medium-term pattern |
-| 12-month | 365 days | **0.2** | Long-term baseline |
+| 3-month | 90 days | `0.5` | Captures recent spending shifts |
+| 6-month | 180 days | `0.3` | Smooths medium-term variance |
+| 12-month | 365 days | `0.2` | Anchors long-term baseline habits |
 
-> **Weight normalization:** If a window has insufficient data (< 3 active days), it is excluded and remaining weights are re-normalized to always sum to 1.0.
+Confidence is evaluated using the **Coefficient of Determination (R²)**:
 
----
-
-#### Supporting Metric — R² (Coefficient of Determination)
-
-Measures how well the regression line fits historical data:
-
-```
-R² = 1 − (SS_res / SS_tot)
-
-SS_res = Σ(y_actual − y_predicted)²   ← Residual sum of squares
-SS_tot = Σ(y_actual − y_mean)²        ← Total sum of squares
-```
-
-| R² Value | Confidence Level | Meaning |
-|---|---|---|
-| R² > 0.7 | **High** | Clear trend — reliable prediction |
-| R² > 0.4 | **Medium** | Reasonable estimate |
-| R² ≤ 0.4 | **Low** | Irregular data — rough estimate |
-
----
-
-#### Prediction Accuracy by Data Volume
-
-| Data Available | Windows Active | Confidence |
-|---|---|---|
-| < 3 active days | None | Insufficient data |
-| 3 – 89 days | 3-month only | Low |
-| 90 – 179 days | 3-month + 6-month | Medium |
-| 180+ days | All 3 windows | High |
-
----
-
-#### Why Pure Python (No NumPy)?
-
-- ✅ **Educational value** — demonstrates deep algorithm understanding
-- ✅ **Lightweight** — no heavy dependencies
-- ✅ **Portable** — runs on any standard Python environment
-- ✅ **Academic integrity** — shows implementation knowledge, not library usage
+- **R² > 0.7** → High confidence
+- **R² > 0.4** → Medium confidence
+- **R² ≤ 0.4** → Low confidence
 
 ---
 
 ## 🧪 Testing
 
-### Test Summary
+Run the full automated Django test suite covering authentication, expense CRUD, tags, recurring expenses, budget thresholds, savings goals, ML forecasting, and security isolation:
 
-| Test Type | Cases | Initial Failures | Final Result |
-|---|---|---|---|
-| Unit Testing | 14 | 4 | ✅ 14/14 Pass |
-| System Testing | 12 | 3 | ✅ 12/12 Pass |
-| Security Testing | 4 | 0 | ✅ 4/4 Pass |
-| **Total** | **30** | **7** | **✅ 30/30 Pass** |
-
-### Key Test Areas
-
-**Unit Tests (14)**
-- User model validation (create, duplicate, invalid email)
-- Expense API (create, unauthorized access, negative amount, future date)
-- Prediction algorithm (normal data, constant data, insufficient data)
-- Budget model (create, duplicate, zero amount, invalid threshold)
-
-**System Tests (12)**
-- User registration and login flows
-- Expense CRUD with dashboard update
-- Budget alert thresholds (79% / 80% / 100%)
-- Forecast generation with sufficient and insufficient data
-- Unauthorized access protection
-
-**Security Tests (4)**
-- Unauthorized dashboard access → redirect to login
-- API access without token → HTTP 403
-- SQL injection attempt → input rejected
-- Password storage → confirmed hashed (PBKDF2-SHA256)
-
-### Performance Metrics
+```bash
+cd backend
+python manage.py test expenses -v 2
 ```
-Page Load Time:     < 2 seconds   ✅
-API Response Time:  < 500ms       ✅
-Database Queries:   < 10 per page ✅
-Chart Render Time:  < 500ms       ✅
-```
+
+### Coverage Areas
+
+- **Unit Tests:** Model constraints, currency formatting, serializer validation, and OLS edge cases (constant series, insufficient data)
+- **System Tests:** Registration/login token lifecycle, recurring expense generation, budget threshold status transitions (safe → warning → over), savings deposits, and bulk deletion
+- **Security Tests:** Cross-user isolation (404/403 on unauthorized access), password-verified account deletion, and PBKDF2-SHA256 password hashing
 
 ---
 
 ## 🔮 Future Enhancements
 
-1. **Mobile Application** — React Native companion app for iOS and Android
-2. **Automated Transaction Import** — Bank API integration (eSewa, Khalti APIs)
-3. **Advanced ML Models** — ARIMA or Prophet for seasonal pattern detection
-4. **Collaborative Budgets** — Shared wallets for families or roommates
-5. **Multi-Currency Support** — For international transactions
-6. **Receipt Scanning** — OCR-based expense entry from photos
-7. **Two-Factor Authentication** — SMS/TOTP for enhanced security
-8. **Cloud Deployment** — Production deployment on AWS or Azure
+- **Mobile Companion App** — React Native / Flutter client for iOS and Android
+- **Automated Wallet Sync** — Direct statement import / webhook integration for eSewa, Khalti, and ConnectIPS
+- **Seasonal Time-Series Models** — SARIMA / Prophet forecasting for festival seasons (Dashain, Tihar)
+- **Shared Family Wallets** — Multi-user household budgets with role-based permissions
+- **OCR Receipt Scanning** — Automatic merchant, date, and amount extraction from receipt photos
+- **Two-Factor Authentication (2FA)** — TOTP authenticator app support
+- **Cloud Deployment** — Dockerized deployment with PostgreSQL and HTTPS
 
 ---
 
 ## 📜 License
 
-This project is developed strictly for academic purposes under the BCA curriculum of **Tribhuvan University, Nepal**.
-
-**Academic Use Only** — Not licensed for commercial use.
+Developed strictly for academic evaluation under the **Bachelor of Computer Application (BCA)** curriculum of **Tribhuvan University, Nepal**.
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **Tribhuvan University** — Academic framework and curriculum
-- **VS International College** — Institutional support and resources
+- **Tribhuvan University** — Academic curriculum and evaluation framework
+- **VS International College** — Institutional support and lab resources
 - **Mr. Santosh Pokharel** — Project supervision and guidance
-- **Django & DRF Communities** — Excellent documentation
-- **Bootstrap & Chart.js Teams** — UI/UX and visualization frameworks
+- **Django & Django REST Framework Communities** — Documentation and ecosystem tools
 
 ---
 
 ## 📞 Contact
 
-**Dhananjay Sah**  
-BCA 6th Semester | VS International College  
-📧 dhananjay07sah@gmail.com  
-🐙 [github.com/dhananjaysah46](https://github.com/dhananjaysah46)
+**Dhananjay Sah**
 
-**Aanchal Manandhar**  
 BCA 6th Semester | VS International College
+
+- 📧 [dhananjay07sah@gmail.com](mailto:dhananjay07sah@gmail.com)
+- 🐙 [github.com/dhananjaysah46](https://github.com/dhananjaysah46)
 
 ---
 
-*Made with ❤️ for BCA Project II — Tribhuvan University, Nepal*
+Made with ❤️ for BCA Project II — Tribhuvan University, Nepal

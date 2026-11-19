@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Savings Goals — EMS</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="assets/css/main.css">
+<style>
+.goals-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:18px; }
+.goal-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; transition:all 0.2s; }
+.goal-card:hover { box-shadow:var(--shadow-md); }
+.goal-card--completed { border-color:rgba(16,185,129,0.35); }
+.goal-card__top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
+.goal-card__title { font-size:17px; font-weight:600; }
+.goal-card__status { font-size:11px; font-weight:600; padding:3px 9px; border-radius:var(--radius-full); text-transform:capitalize; flex-shrink:0; }
+.goal-card__status--active { background:var(--accent-light); color:var(--accent); }
+.goal-card__status--completed { background:var(--success-bg); color:var(--success); }
+.goal-card__status--paused { background:var(--ink-100); color:var(--ink-500); }
+.goal-card__amounts { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px; }
+.goal-card__saved { font-size:24px; font-weight:700; font-family:var(--font-mono); letter-spacing:-0.5px; color:var(--success); }
+.goal-card__target { font-size:13px; color:var(--text-muted); font-family:var(--font-mono); }
+.goal-card__bar { height:10px; background:var(--ink-100); border-radius:var(--radius-full); overflow:hidden; margin-bottom:10px; }
+.goal-card__fill { height:100%; background:linear-gradient(90deg,var(--accent),#10b981); border-radius:var(--radius-full); transition:width 0.7s ease; }
+.goal-card__meta { display:flex; align-items:center; justify-content:space-between; font-size:12px; color:var(--text-muted); margin-bottom:16px; }
+.goal-card__actions { display:flex; gap:8px; }
+.summary-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+.sum-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:16px 20px; }
+.sum-card__label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); }
+.sum-card__val { font-size:22px; font-weight:700; font-family:var(--font-mono); margin-top:4px; }
+@media (max-width:640px) { .summary-row { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <a href="dashboard.html" class="sidebar__brand">
+      <div class="sidebar__brand-icon">💰</div>
+      <div>
+        <div class="sidebar__brand-name">EMS</div>
+        <div class="sidebar__brand-sub">Finance Manager</div>
+      </div>
+    </a>
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section-label">Main</div>
+        <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
+        <a href="expenses.html" class="nav-link"><i class="fa-solid fa-receipt"></i> Expenses</a>
+        <a href="budget.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Budgets</a>
+        <a href="savings.html" class="nav-link active"><i class="fa-solid fa-piggy-bank"></i> Savings</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Insights</div>
+        <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+        <a href="reports.html" class="nav-link"><i class="fa-solid fa-file-arrow-down"></i> Reports</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Account</div>
+        <a href="settings.html" class="nav-link"><i class="fa-solid fa-gear"></i> Settings</a>
+      </div>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="user-chip">
+        <div class="user-avatar" id="sidebarAvatar">?</div>
+        <div>
+          <div class="user-name" id="sidebarName">Loading…</div>
+          <div class="user-role">Personal Account</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar__left"><div class="topbar__title">Savings Goals</div></div>
+      <div class="topbar__right">
+        <button class="btn btn--primary btn--sm" id="addGoalBtn"><i class="fa-solid fa-plus"></i> New Goal</button>
+        <button class="btn btn--ghost btn--sm" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </div>
+    </header>
+
+    <div class="page">
+      <div class="summary-row">
+        <div class="sum-card"><div class="sum-card__label">Total Saved</div><div class="sum-card__val" id="sumSaved" style="color:var(--success)">—</div></div>
+        <div class="sum-card"><div class="sum-card__label">Total Target</div><div class="sum-card__val" id="sumTarget">—</div></div>
+        <div class="sum-card"><div class="sum-card__label">Goals Completed</div><div class="sum-card__val" id="sumDone" style="color:var(--accent)">—</div></div>
+      </div>
+
+      <div id="goalsGrid" class="goals-grid">
+        <div class="empty-state" style="grid-column:1/-1;padding:60px 0"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Goal Modal -->
+<div class="modal-overlay" id="goalModal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal__header">
+      <h3 class="modal__title" id="goalModalTitle">New Savings Goal</h3>
+      <button class="modal__close" id="closeGoalModal">✕</button>
+    </div>
+    <div class="modal__body">
+      <input type="hidden" id="editGoalId">
+      <div class="form-group">
+        <label class="form-label form-label--required">Goal Title</label>
+        <input class="form-control" id="gTitle" placeholder="e.g. Emergency Fund, Trip to Pokhara" maxlength="200">
+        <span class="form-error" id="gTitleErr"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label form-label--required" id="gTargetLabel">Target</label>
+          <input class="form-control" id="gTarget" type="number" min="1" step="0.01" placeholder="50000">
+          <span class="form-error" id="gTargetErr"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="gCurrentLabel">Already Saved</label>
+          <input class="form-control" id="gCurrent" type="number" min="0" step="0.01" placeholder="0" value="0">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Target Date</label>
+          <input class="form-control" id="gDate" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-control" id="gStatus">
+            <option value="active">Active</option>
+            <option value="paused">Paused</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea class="form-control" id="gNotes" rows="2" placeholder="Optional…" maxlength="500"></textarea>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" id="cancelGoalModal">Cancel</button>
+      <button class="btn btn--primary" id="saveGoalBtn"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Funds Modal -->
+<div class="modal-overlay" id="fundsModal">
+  <div class="modal" style="max-width:360px">
+    <div class="modal__header">
+      <h3 class="modal__title">Add Funds</h3>
+      <button class="modal__close" id="closeFundsModal">✕</button>
+    </div>
+    <div class="modal__body">
+      <input type="hidden" id="fundsGoalId">
+      <div style="font-size:14px;color:var(--text-secondary)" id="fundsGoalName"></div>
+      <div class="form-group">
+        <label class="form-label form-label--required" id="fundsAmountLabel">Amount</label>
+        <input class="form-control" id="fundsAmount" type="number" min="1" step="0.01" placeholder="1000">
+        <span class="form-error" id="fundsAmountErr"></span>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" id="cancelFundsModal">Cancel</button>
+      <button class="btn btn--success" id="saveFundsBtn"><i class="fa-solid fa-plus"></i> Add Funds</button>
+    </div>
+  </div>
+</div>
+
+<script src="core.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const { api, auth, Toast, Utils, Loader } = window.AppCore;
+  const ok = await window.requireAuth();
+  if (!ok) return;
+
+  const u = auth.user;
+  if (u) {
+    document.getElementById('sidebarName').textContent = u.name || u.username;
+    document.getElementById('sidebarAvatar').textContent = (u.first_name?.[0] || u.username?.[0] || '?').toUpperCase();
+  }
+  const sym = Utils.getCurrencySymbol();
+  document.getElementById('gTargetLabel').textContent = `Target (${sym})`;
+  document.getElementById('gCurrentLabel').textContent = `Already Saved (${sym})`;
+  document.getElementById('fundsAmountLabel').textContent = `Amount (${sym})`;
+
+  let goals = [];
+
+  async function loadGoals() {
+    try {
+      const data = await api.get('/savings-goals/', false);
+      goals = Array.isArray(data) ? data : (data.results || []);
+      renderSummary();
+      renderCards();
+    } catch (e) { Toast.error('Failed to load goals: ' + e.message); }
+  }
+
+  function renderSummary() {
+    const saved = goals.reduce((s, g) => s + parseFloat(g.current_amount || 0), 0);
+    const target = goals.reduce((s, g) => s + parseFloat(g.target_amount || 0), 0);
+    const done = goals.filter(g => g.status === 'completed').length;
+    document.getElementById('sumSaved').textContent = Utils.formatCurrency(saved);
+    document.getElementById('sumTarget').textContent = Utils.formatCurrency(target);
+    document.getElementById('sumDone').textContent = `${done} / ${goals.length}`;
+  }
+
+  function renderCards() {
+    const grid = document.getElementById('goalsGrid');
+    if (!goals.length) {
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;padding:60px 0">
+        <i class="fa-solid fa-piggy-bank" style="font-size:48px"></i>
+        <div class="empty-state__title">No savings goals yet</div>
+        <div class="empty-state__sub">Start saving toward something meaningful</div>
+      </div>`;
+      return;
+    }
+    grid.innerHTML = goals.map(g => {
+      const pct = Math.min(g.progress_percentage || 0, 100);
+      const isDone = g.status === 'completed';
+      const daysTxt = g.days_remaining != null
+        ? (g.days_remaining > 0 ? `${g.days_remaining}d left` : g.days_remaining === 0 ? 'Due today' : `${Math.abs(g.days_remaining)}d overdue`)
+        : 'No deadline';
+      return `<div class="goal-card ${isDone ? 'goal-card--completed' : ''}">
+        <div class="goal-card__top">
+          <div class="goal-card__title">${Utils.escapeHtml(g.title)}</div>
+          <span class="goal-card__status goal-card__status--${g.status}">${g.status}</span>
+        </div>
+        <div class="goal-card__amounts">
+          <span class="goal-card__saved">${Utils.formatCurrency(g.current_amount)}</span>
+          <span class="goal-card__target">/ ${Utils.formatCurrency(g.target_amount)}</span>
+        </div>
+        <div class="goal-card__bar"><div class="goal-card__fill" style="width:${pct}%"></div></div>
+        <div class="goal-card__meta">
+          <span>${pct.toFixed(0)}% complete</span>
+          <span>${daysTxt}</span>
+        </div>
+        ${g.notes ? `<p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">${Utils.escapeHtml(g.notes)}</p>` : ''}
+        <div class="goal-card__actions">
+          ${!isDone ? `<button class="btn btn--success btn--sm add-funds-btn" data-id="${g.id}" style="flex:1"><i class="fa-solid fa-plus"></i> Add Funds</button>` : `<span style="flex:1;font-size:13px;color:var(--success);font-weight:500"><i class="fa-solid fa-circle-check"></i> Goal Reached!</span>`}
+          <button class="btn btn--ghost btn--icon btn--sm edit-goal-btn" data-id="${g.id}" title="Edit"><i class="fa-solid fa-pen" style="font-size:12px"></i></button>
+          <button class="btn btn--ghost btn--icon btn--sm del-goal-btn" data-id="${g.id}" title="Delete"><i class="fa-solid fa-trash-can" style="font-size:12px;color:var(--danger)"></i></button>
+        </div>
+      </div>`;
+    }).join('');
+
+    document.querySelectorAll('.add-funds-btn').forEach(b => b.addEventListener('click', () => openFunds(parseInt(b.dataset.id, 10))));
+    document.querySelectorAll('.edit-goal-btn').forEach(b => b.addEventListener('click', () => openEdit(parseInt(b.dataset.id, 10))));
+    document.querySelectorAll('.del-goal-btn').forEach(b => b.addEventListener('click', () => deleteGoal(parseInt(b.dataset.id, 10))));
+  }
+
+  const gModal = document.getElementById('goalModal');
+  function closeGModal() { gModal.classList.remove('open'); }
+  document.getElementById('closeGoalModal').addEventListener('click', closeGModal);
+  document.getElementById('cancelGoalModal').addEventListener('click', closeGModal);
+  gModal.addEventListener('click', e => { if (e.target === gModal) closeGModal(); });
+
+  function openAdd() {
+    document.getElementById('editGoalId').value = '';
+    document.getElementById('goalModalTitle').textContent = 'New Savings Goal';
+    ['gTitle', 'gTarget', 'gDate', 'gNotes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('gCurrent').value = '0';
+    document.getElementById('gStatus').value = 'active';
+    ['gTitleErr', 'gTargetErr'].forEach(id => document.getElementById(id).textContent = '');
+    gModal.classList.add('open');
+  }
+
+  function openEdit(id) {
+    const g = goals.find(x => x.id === id);
+    if (!g) return;
+    document.getElementById('editGoalId').value = g.id;
+    document.getElementById('goalModalTitle').textContent = 'Edit Savings Goal';
+    document.getElementById('gTitle').value = g.title;
+    document.getElementById('gTarget').value = parseFloat(g.target_amount);
+    document.getElementById('gCurrent').value = parseFloat(g.current_amount);
+    document.getElementById('gDate').value = g.target_date || '';
+    document.getElementById('gStatus').value = g.status;
+    document.getElementById('gNotes').value = g.notes || '';
+    ['gTitleErr', 'gTargetErr'].forEach(elId => document.getElementById(elId).textContent = '');
+    gModal.classList.add('open');
+  }
+
+  document.getElementById('saveGoalBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('saveGoalBtn');
+    const id = document.getElementById('editGoalId').value;
+    const title = document.getElementById('gTitle').value.trim();
+    const target = parseFloat(document.getElementById('gTarget').value);
+    const current = parseFloat(document.getElementById('gCurrent').value) || 0;
+    const date = document.getElementById('gDate').value || null;
+    const status = document.getElementById('gStatus').value;
+    const notes = document.getElementById('gNotes').value.trim();
+
+    let valid = true;
+    const setErr = (elId, msg) => { document.getElementById(elId).textContent = msg; if (msg) valid = false; };
+    setErr('gTitleErr', title ? '' : 'Title is required.');
+    setErr('gTargetErr', target > 0 ? '' : 'Target amount required.');
+    if (!valid) return;
+
+    const payload = { title, target_amount: target, current_amount: current, target_date: date, status, notes };
+    Loader.showBtn(btn);
+    try {
+      id ? await api.put(`/savings-goals/${id}/`, payload) : await api.post('/savings-goals/', payload);
+      Toast.success(id ? 'Goal updated!' : 'Goal created!');
+      closeGModal();
+      loadGoals();
+    } catch (e) { Toast.error(e.message); }
+    finally { Loader.showBtn(btn, false); }
+  });
+
+  const fModal = document.getElementById('fundsModal');
+  function closeFModal() { fModal.classList.remove('open'); }
+  document.getElementById('closeFundsModal').addEventListener('click', closeFModal);
+  document.getElementById('cancelFundsModal').addEventListener('click', closeFModal);
+  fModal.addEventListener('click', e => { if (e.target === fModal) closeFModal(); });
+
+  function openFunds(id) {
+    const g = goals.find(x => x.id === id);
+    if (!g) return;
+    document.getElementById('fundsGoalId').value = id;
+    document.getElementById('fundsGoalName').textContent = `Adding funds to: ${g.title} (${Utils.formatCurrency(g.remaining_amount)} remaining)`;
+    document.getElementById('fundsAmount').value = '';
+    document.getElementById('fundsAmountErr').textContent = '';
+    fModal.classList.add('open');
+  }
+
+  document.getElementById('saveFundsBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('saveFundsBtn');
+    const id = document.getElementById('fundsGoalId').value;
+    const amount = parseFloat(document.getElementById('fundsAmount').value);
+    if (!amount || amount <= 0) {
+      document.getElementById('fundsAmountErr').textContent = 'Enter a positive amount.';
+      return;
+    }
+    Loader.showBtn(btn);
+    try {
+      await api.post(`/savings-goals/${id}/add_funds/`, { amount });
+      Toast.success(`Added ${Utils.formatCurrency(amount)}!`);
+      closeFModal();
+      loadGoals();
+    } catch (e) { Toast.error(e.message); }
+    finally { Loader.showBtn(btn, false); }
+  });
+
+  async function deleteGoal(id) {
+    if (!confirm('Delete this savings goal?')) return;
+    try {
+      await api.delete(`/savings-goals/${id}/`);
+      Toast.success('Deleted.');
+      loadGoals();
+    } catch (e) { Toast.error(e.message); }
+  }
+
+  document.getElementById('addGoalBtn').addEventListener('click', openAdd);
+  document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
+
+  loadGoals();
+});
+</script>
+</body>
+</html>

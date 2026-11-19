@@ -1,907 +1,382 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics - Expense Management System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root {
-            --primary: #3B82F6;
-            --success: #10B981;
-            --danger: #EF4444;
-            --warning: #F59E0B;
-        }
-        
-        body {
-            background: #F9FAFB;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: 250px;
-            background: white;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            padding: 20px 0;
-            z-index: 1000;
-        }
-        .sidebar-logo {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid #E5E7EB;
-            margin-bottom: 20px;
-        }
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .sidebar-menu li a {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            color: #6B7280;
-            text-decoration: none;
-        }
-        .sidebar-menu li a:hover,
-        .sidebar-menu li a.active {
-            background: #EFF6FF;
-            color: var(--primary);
-            border-right: 3px solid var(--primary);
-        }
-        .sidebar-menu li a i {
-            margin-right: 12px;
-            width: 20px;
-        }
-        .main-content {
-            margin-left: 250px;
-            padding: 20px;
-        }
-        .top-bar {
-            background: white;
-            padding: 15px 30px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .analytics-card {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }
-        .prediction-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
-            padding: 30px;
-            color: white;
-            text-align: center;
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-        .prediction-value {
-            font-size: 3rem;
-            font-weight: bold;
-            margin: 20px 0;
-            position: relative;
-            z-index: 1;
-        }
-        .confidence-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 8px 16px;
-            border-radius: 20px;
-            display: inline-block;
-            position: relative;
-            z-index: 1;
-        }
-        .ml-info-card {
-            background: linear-gradient(135deg, #3B82F6, #2563EB);
-            border-radius: 15px;
-            padding: 25px;
-            color: white;
-            margin-bottom: 20px;
-        }
-        .algorithm-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 10px 15px;
-            border-radius: 10px;
-            margin: 10px 0;
-        }
-        .accuracy-meter {
-            width: 100%;
-            height: 10px;
-            background: #E5E7EB;
-            border-radius: 5px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-        .accuracy-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #10B981, #3B82F6);
-            transition: width 1s ease;
-        }
-        .data-quality-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.85rem;
-        }
-        .quality-excellent { background: #D1FAE5; color: #10B981; }
-        .quality-good { background: #DBEAFE; color: #3B82F6; }
-        .quality-fair { background: #FEF3C7; color: #F59E0B; }
-        .quality-poor { background: #FEE2E2; color: #EF4444; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analytics — EMS</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="assets/css/main.css">
+<style>
+.period-tabs { display:flex; gap:4px; background:var(--ink-100); padding:4px; border-radius:var(--radius); width:fit-content; }
+.period-tab { padding:6px 14px; border:none; border-radius:7px; background:transparent; color:var(--text-secondary); font-size:13px; font-weight:500; cursor:pointer; transition:all 0.15s; font-family:var(--font-sans); }
+.period-tab.active { background:var(--bg-card); color:var(--text-primary); box-shadow:var(--shadow-sm); }
+.chart-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px 24px; }
+.chart-card__header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.chart-card__title { font-size:14px; font-weight:600; }
+.chart-card__sub { font-size:12px; color:var(--text-muted); }
+.ml-card { background:linear-gradient(135deg, #1e1133 0%, #3b1a6e 100%); border-radius:var(--radius-lg); padding:24px 28px; color:white; }
+.ml-card__badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; background:rgba(255,255,255,0.12); padding:4px 10px; border-radius:var(--radius-full); margin-bottom:12px; }
+.ml-card__pred { font-size:32px; font-weight:700; font-family:var(--font-mono); letter-spacing:-1px; }
+.ml-card__sub { font-size:13px; color:rgba(255,255,255,0.65); margin-top:4px; }
+.ml-meta { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:18px; padding-top:18px; border-top:1px solid rgba(255,255,255,0.1); }
+.ml-meta__item label { font-size:11px; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.5px; }
+.ml-meta__item value { display:block; font-size:15px; font-weight:600; font-family:var(--font-mono); margin-top:2px; }
+.insight-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; display:flex; align-items:center; gap:14px; }
+.insight-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.insight-title { font-size:13px; font-weight:600; }
+.insight-desc { font-size:12px; color:var(--text-muted); margin-top:2px; }
+.window-list { display:flex; flex-direction:column; gap:8px; margin-top:14px; }
+.window-row { display:flex; align-items:center; justify-content:space-between; font-size:12px; padding:8px 12px; background:rgba(255,255,255,0.06); border-radius:var(--radius-sm); }
+</style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-logo">
-            <h5 class="mb-0"><i class="fas fa-wallet text-primary"></i> EMS</h5>
+<div class="layout">
+  <aside class="sidebar">
+    <a href="dashboard.html" class="sidebar__brand">
+      <div class="sidebar__brand-icon">💰</div>
+      <div>
+        <div class="sidebar__brand-name">EMS</div>
+        <div class="sidebar__brand-sub">Finance Manager</div>
+      </div>
+    </a>
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section-label">Main</div>
+        <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
+        <a href="expenses.html" class="nav-link"><i class="fa-solid fa-receipt"></i> Expenses</a>
+        <a href="budget.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Budgets</a>
+        <a href="savings.html" class="nav-link"><i class="fa-solid fa-piggy-bank"></i> Savings</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Insights</div>
+        <a href="analytics.html" class="nav-link active"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+        <a href="reports.html" class="nav-link"><i class="fa-solid fa-file-arrow-down"></i> Reports</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Account</div>
+        <a href="settings.html" class="nav-link"><i class="fa-solid fa-gear"></i> Settings</a>
+      </div>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="user-chip">
+        <div class="user-avatar" id="sidebarAvatar">?</div>
+        <div>
+          <div class="user-name" id="sidebarName">Loading…</div>
+          <div class="user-role">Personal Account</div>
         </div>
-        <ul class="sidebar-menu">
-            <li><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
-            <li><a href="expenses.html"><i class="fas fa-receipt"></i> Expenses</a></li>
-            <li><a href="budget.html"><i class="fas fa-chart-pie"></i> Budgets</a></li>
-            <li><a href="analytics.html" class="active"><i class="fas fa-chart-line"></i> Analytics</a></li>
-            <li><a href="reports.html"><i class="fas fa-file-download"></i> Reports</a></li>
-            <li><a href="settings.html"><i class="fas fa-cog"></i> Settings</a></li>
-        </ul>
+      </div>
     </div>
+  </aside>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Top Bar -->
-        <div class="top-bar d-flex justify-content-between align-items-center">
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar__left"><div class="topbar__title">Analytics &amp; AI Insights</div></div>
+      <div class="topbar__right">
+        <div class="period-tabs">
+          <button class="period-tab active" data-period="week">7D</button>
+          <button class="period-tab" data-period="month">30D</button>
+          <button class="period-tab" data-period="quarter">90D</button>
+          <button class="period-tab" data-period="year">1Y</button>
+        </div>
+        <button class="btn btn--ghost btn--sm" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </div>
+    </header>
+
+    <div class="page">
+      <div class="stats-grid mb-6">
+        <div class="stat-card"><div class="stat-card__label">Period Total</div><div class="stat-card__value" id="aTotal">—</div><div class="stat-card__delta stat-card__delta--neutral" id="aPeriodLabel">—</div></div>
+        <div class="stat-card"><div class="stat-card__label">Daily Average</div><div class="stat-card__value" id="aDailyAvg">—</div><div class="stat-card__delta stat-card__delta--neutral">Per calendar day</div></div>
+        <div class="stat-card"><div class="stat-card__label">Highest Single</div><div class="stat-card__value" id="aMaxSingle" style="color:var(--rose-600)">—</div><div class="stat-card__delta stat-card__delta--neutral">Peak transaction</div></div>
+        <div class="stat-card"><div class="stat-card__label">Spending Streak</div><div class="stat-card__value" id="aStreak" style="color:var(--accent)">—</div><div class="stat-card__delta stat-card__delta--neutral">Consecutive days</div></div>
+      </div>
+
+      <div class="grid grid-2 mb-6">
+        <div class="ml-card">
+          <div class="ml-card__badge"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Spending Forecast</div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
             <div>
-                <h4 class="mb-0">Analytics & Predictions</h4>
-                <small class="text-muted">AI-powered expense forecasting and insights</small>
+              <div class="ml-card__pred" id="mlPred">—</div>
+              <div class="ml-card__sub" id="mlSub">Predicted spending for next 30 days</div>
             </div>
-            <div class="btn-group">
-                <button class="btn btn-outline-primary" id="btnWeek" onclick="AnalyticsApp.setPeriod('week', event)">7 Days</button>
-                <button class="btn btn-outline-primary active" id="btnMonth" onclick="AnalyticsApp.setPeriod('month', event)">30 Days</button>
-                <button class="btn btn-outline-primary" id="btnQuarter" onclick="AnalyticsApp.setPeriod('quarter', event)">90 Days</button>
-            </div>
+            <select id="forecastDays" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:6px 10px;border-radius:8px;font-size:13px;cursor:pointer">
+              <option value="14" style="color:#14141e">Next 14 days</option>
+              <option value="30" selected style="color:#14141e">Next 30 days</option>
+              <option value="90" style="color:#14141e">Next 90 days</option>
+            </select>
+          </div>
+          <div class="ml-meta">
+            <div class="ml-meta__item"><label>Confidence</label><value id="mlConf">—</value></div>
+            <div class="ml-meta__item"><label>Range (Min–Max)</label><value id="mlRange">—</value></div>
+            <div class="ml-meta__item"><label>Trend</label><value id="mlTrend">—</value></div>
+          </div>
+          <div class="window-list" id="mlWindows"></div>
         </div>
 
-        <!-- Data Quality Indicator -->
-        <div class="alert alert-info d-flex justify-content-between align-items-center" id="dataQualityAlert">
-            <div>
-                <i class="fas fa-info-circle"></i>
-                <strong>Data Quality:</strong>
-                <span id="dataQualityText">Analyzing...</span>
-            </div>
-            <span id="dataQualityBadge" class="data-quality-indicator"></span>
+        <div class="chart-card">
+          <div class="chart-card__header">
+            <div><div class="chart-card__title">Spending by Day of Week</div><div class="chart-card__sub">Which days you spend the most</div></div>
+          </div>
+          <div class="chart-wrap" style="height:220px"><canvas id="weeklyChart"></canvas></div>
         </div>
+      </div>
 
-        <!-- ML Prediction Cards -->
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="prediction-card">
-                    <div class="d-flex align-items-center justify-content-center mb-3">
-                        <i class="fas fa-brain fa-3x"></i>
-                    </div>
-                    <h5>AI Prediction - Next Month</h5>
-                    <div class="prediction-value" id="predictionNextMonth">Rs. 0</div>
-                    <div class="confidence-badge">
-                        <i class="fas fa-chart-line"></i>
-                        <span id="confidenceLevel">Calculating...</span>
-                    </div>
-                    <div class="accuracy-meter">
-                        <div class="accuracy-fill" id="accuracyBar" style="width: 0%"></div>
-                    </div>
-                    <p class="mt-3 mb-0 small">Based on historical spending patterns</p>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="prediction-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                    <div class="d-flex align-items-center justify-content-center mb-3">
-                        <i class="fas fa-calendar-alt fa-3x"></i>
-                    </div>
-                    <h5>Spending Insights</h5>
-                    <div class="prediction-value" id="averageDaily">Rs. 0</div>
-                    <div class="confidence-badge mb-2">
-                        <i class="fas fa-chart-bar"></i>
-                        <span>Daily Average</span>
-                    </div>
-                    <p class="mt-2 mb-0 small" id="trendIndicator">Analyzing trend...</p>
-                </div>
-            </div>
+      <div class="grid grid-2 mb-6">
+        <div class="chart-card">
+          <div class="chart-card__header"><div><div class="chart-card__title">Spending Timeline</div><div class="chart-card__sub">Daily totals over period</div></div></div>
+          <div class="chart-wrap" style="height:230px"><canvas id="timelineChart"></canvas></div>
         </div>
+        <div class="chart-card">
+          <div class="chart-card__header"><div><div class="chart-card__title">Category Distribution</div><div class="chart-card__sub">Share of spending</div></div></div>
+          <div class="chart-wrap" style="height:230px"><canvas id="catBarChart"></canvas></div>
+        </div>
+      </div>
 
-        <!-- ML Algorithm Info -->
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="ml-info-card">
-                    <h5><i class="fas fa-calculator"></i> Prediction Algorithm</h5>
-                    <p class="small mb-3">Advanced statistical analysis of spending patterns</p>
-                    <div class="algorithm-badge">
-                        <strong>Method:</strong> Multi-Window Linear Regression (3-month × 0.5 + 6-month × 0.3 + 12-month × 0.2)
-                    </div>
-                    <div class="algorithm-badge">
-                        <strong>Data Points:</strong> <span id="dataPointsCount">0</span>
-                    </div>
-                    <div class="algorithm-badge">
-                        <strong>Confidence:</strong> <span id="predictionConfidence">-</span>
-                    </div>
-                    <p class="small mt-3 mb-0">
-                        <i class="fas fa-info-circle"></i> More data improves prediction accuracy
-                    </p>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="ml-info-card" style="background: linear-gradient(135deg, #8B5CF6, #6D28D9);">
-                    <h5><i class="fas fa-balance-scale"></i> Spending Analysis</h5>
-                    <p class="small mb-3">Statistical breakdown of your expenses</p>
-                    <div class="algorithm-badge">
-                        <strong>Total Expenses:</strong> <span id="totalExpensesAnalytics">Rs. 0</span>
-                    </div>
-                    <div class="algorithm-badge">
-                        <strong>Transaction Count:</strong> <span id="transactionCount">0</span>
-                    </div>
-                    <div class="algorithm-badge">
-                        <strong>Avg per Transaction:</strong> <span id="avgPerTransaction">Rs. 0</span>
-                    </div>
-                    <p class="small mt-3 mb-0">
-                        <i class="fas fa-info-circle"></i> Based on selected time period
-                    </p>
-                </div>
-            </div>
+      <div class="grid grid-2">
+        <div class="chart-card">
+          <div class="chart-card__header"><div><div class="chart-card__title">Payment Methods</div><div class="chart-card__sub">How you pay</div></div></div>
+          <div class="chart-wrap" style="height:190px"><canvas id="payChart"></canvas></div>
         </div>
-
-        <!-- Charts Row -->
-        <div class="row mb-4">
-            <div class="col-md-8">
-                <div class="analytics-card">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0">Spending Trend & Prediction</h5>
-                        <button class="btn btn-sm btn-outline-primary" onclick="AnalyticsApp.refreshPredictions()">
-                            <i class="fas fa-sync"></i> Refresh
-                        </button>
-                    </div>
-                    <canvas id="predictionChart" height="80"></canvas>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="analytics-card">
-                    <h5 class="mb-3">Spending by Day of Week</h5>
-                    <canvas id="weekdayChart"></canvas>
-                </div>
-            </div>
+        <div class="chart-card">
+          <div class="chart-card__header"><div><div class="chart-card__title">Smart Insights</div><div class="chart-card__sub">Automated spending observations</div></div></div>
+          <div id="insightsList" style="display:flex;flex-direction:column;gap:10px"></div>
         </div>
-
-        <!-- Detailed Statistics -->
-        <div class="row">
-            <div class="col-md-4">
-                <div class="analytics-card">
-                    <h5 class="mb-3"><i class="fas fa-chart-bar text-primary"></i> Historical Stats</h5>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Daily Average</span>
-                            <strong id="dailyAvg">Rs. 0</strong>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Weekly Average</span>
-                            <strong id="weeklyAvg">Rs. 0</strong>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Monthly Average</span>
-                            <strong id="monthlyAvg">Rs. 0</strong>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Highest Day</span>
-                            <strong id="highestDay">-</strong>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Lowest Day</span>
-                            <strong id="lowestDay">-</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="analytics-card">
-                    <h5 class="mb-3"><i class="fas fa-chart-line text-success"></i> Trend Analysis</h5>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Trend Direction</span>
-                            <strong id="trendDirection">-</strong>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Trend Strength</span>
-                            <strong id="trendStrength">-</strong>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Data Points</span>
-                            <strong id="dataPoints">0</strong>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Variance</span>
-                            <strong id="variance">-</strong>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Consistency</span>
-                            <strong id="consistency">-</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="analytics-card">
-                    <h5 class="mb-3"><i class="fas fa-lightbulb text-warning"></i> Smart Insights</h5>
-                    <div id="insights">
-                        <p class="text-muted small">Loading insights...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Category Analysis -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="analytics-card">
-                    <h5 class="mb-3">Category-wise Analysis</h5>
-                    <canvas id="categoryComparisonChart" height="60"></canvas>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+  </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="core.js"></script>
-    <script>
-const AnalyticsApp = (function() {
-    const { api, NotificationManager, ErrorHandler, Utils } = window.AppCore;
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="core.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const { api, auth, Toast, Utils } = window.AppCore;
+  const ok = await window.requireAuth();
+  if (!ok) return;
 
-    let currentPeriod = 'month'; // Default to 30 days
-    let predictionChart, weekdayChart, categoryComparisonChart;
-    let predictionData = null;
-    let allExpenses = []; // Store all expenses
-    let filteredData = null;
+  const u = auth.user;
+  if (u) {
+    document.getElementById('sidebarName').textContent = u.name || u.username;
+    document.getElementById('sidebarAvatar').textContent = (u.first_name?.[0] || u.username?.[0] || '?').toUpperCase();
+  }
 
-    // --- Initialization ---
-    async function init() {
-        try {
-            await window.requireAuth();
-            await loadAnalytics();
-        } catch (error) {
-            ErrorHandler.handle(error, 'Analytics Initialization');
-            showErrorState();
-        }
+  let currentPeriod = 'week';
+  const charts = {};
+
+  function destroyChart(key) {
+    if (charts[key]) {
+      charts[key].destroy();
+      delete charts[key];
     }
+  }
 
-    // --- Get date range based on period ---
-    function getDateRange(period) {
-        const now = new Date();
-        const endDate = new Date(now);
-        let startDate = new Date(now);
+  const baseChartOpts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#14141e',
+        titleColor: '#a8a8c0',
+        bodyColor: '#e8e8f0',
+        padding: 10,
+        callbacks: { label: c => ' ' + Utils.formatCurrency(c.parsed.y ?? c.parsed) },
+      },
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#9ca3af' } },
+      y: {
+        beginAtZero: true,
+        grid: { color: 'rgba(128,128,128,0.08)' },
+        ticks: { font: { size: 11 }, color: '#9ca3af', callback: v => Utils.formatCompactCurrency(v) },
+      },
+    },
+  };
 
-        switch(period) {
-            case 'week':
-                startDate.setDate(now.getDate() - 7);
-                break;
-            case 'month':
-                startDate.setDate(now.getDate() - 30);
-                break;
-            case 'quarter':
-                startDate.setDate(now.getDate() - 90);
-                break;
-            default:
-                startDate.setDate(now.getDate() - 30);
-        }
+  async function loadAnalytics(period) {
+    try {
+      const data = await api.get(`/analytics/overview/?period=${period}`, false);
+      const s = data.summary;
+      document.getElementById('aTotal').textContent = Utils.formatCurrency(s.total);
+      document.getElementById('aDailyAvg').textContent = Utils.formatCurrency(s.average);
+      document.getElementById('aMaxSingle').textContent = Utils.formatCurrency(s.max_single);
+      document.getElementById('aStreak').textContent = `${s.spending_streak}d`;
+      document.getElementById('aPeriodLabel').textContent = `${s.count} transactions`;
 
-        return { startDate, endDate };
-    }
+      destroyChart('timeline');
+      charts.timeline = new Chart(document.getElementById('timelineChart'), {
+        type: 'line',
+        data: {
+          labels: data.daily_trend.map(d => Utils.formatDate(d.date, { month: 'short', day: 'numeric' })),
+          datasets: [{
+            data: data.daily_trend.map(d => parseFloat(d.amount) || 0),
+            borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.08)',
+            borderWidth: 2, tension: 0.4, fill: true, pointRadius: 3, pointHoverRadius: 5,
+          }],
+        },
+        options: baseChartOpts,
+      });
 
-    // --- Filter expenses by date range ---
-    function filterExpensesByPeriod(expenses, period) {
-        const { startDate } = getDateRange(period);
-        
-        return expenses.filter(exp => {
-            const expDate = new Date(exp.date);
-            return expDate >= startDate;
-        });
-    }
+      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      destroyChart('weekly');
+      charts.weekly = new Chart(document.getElementById('weeklyChart'), {
+        type: 'bar',
+        data: {
+          labels: days,
+          datasets: [{
+            data: data.weekly_pattern || Array(7).fill(0),
+            backgroundColor: days.map((_, i) => i >= 5 ? '#7c3aed' : '#c4b5fd'),
+            borderRadius: 6,
+          }],
+        },
+        options: baseChartOpts,
+      });
 
-    // --- Calculate daily trend from expenses ---
-    function calculateDailyTrend(expenses, period) {
-        const { startDate, endDate } = getDateRange(period);
-        const dailyMap = new Map();
-
-        // Initialize all dates with 0
-        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-            const dateStr = d.toISOString().split('T')[0];
-            dailyMap.set(dateStr, 0);
-        }
-
-        // Sum expenses by date
-        expenses.forEach(exp => {
-            const dateStr = exp.date;
-            if (dailyMap.has(dateStr)) {
-                dailyMap.set(dateStr, dailyMap.get(dateStr) + parseFloat(exp.amount));
-            }
-        });
-
-        // Convert to array and sort
-        return Array.from(dailyMap.entries())
-            .map(([date, amount]) => ({ date, amount }))
-            .sort((a, b) => a.date.localeCompare(b.date));
-    }
-
-    // --- Calculate category breakdown ---
-    function calculateCategoryBreakdown(expenses) {
-        const categoryMap = new Map();
-
-        expenses.forEach(exp => {
-            const category = exp.category_name || 'Uncategorized';
-            if (!categoryMap.has(category)) {
-                categoryMap.set(category, { total: 0, count: 0 });
-            }
-            const cat = categoryMap.get(category);
-            cat.total += parseFloat(exp.amount);
-            cat.count += 1;
-        });
-
-        return Array.from(categoryMap.entries())
-            .map(([name, data]) => ({
-                category__name: name,
-                total: data.total,
-                count: data.count
-            }))
-            .sort((a, b) => b.total - a.total);
-    }
-
-    // --- Load analytics from API ---
-    async function loadAnalytics() {
-        try {
-            // Load ALL expenses (not limited by date)
-            const expensesData = await api.get('/expenses/', false);
-            allExpenses = expensesData.results || expensesData;
-
-            // Filter by current period
-            const filteredExpenses = filterExpensesByPeriod(allExpenses, currentPeriod);
-            
-            // Calculate metrics from filtered data
-            const dailyTrend = calculateDailyTrend(filteredExpenses, currentPeriod);
-            const byCategory = calculateCategoryBreakdown(filteredExpenses);
-            
-            const totalExpenses = filteredExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount), 0);
-            const transactionCount = filteredExpenses.length;
-            const averageTransaction = transactionCount > 0 ? totalExpenses / transactionCount : 0;
-
-            const summary = {
-                total_expenses: totalExpenses,
-                transaction_count: transactionCount,
-                average_transaction: averageTransaction
-            };
-
-            // Create dashboard-like structure
-            const dashboard = {
-                summary,
-                daily_trend: dailyTrend,
-                by_category: byCategory
-            };
-
-            filteredData = dashboard;
-
-            // Load predictions (if available)
-            const predictions = await api.get('/analytics/predictions/', false).catch(() => null);
-            predictionData = predictions;
-
-            updatePredictionCards(predictions, dashboard);
-            updateStatistics(dashboard, predictions);
-            updateCharts(dashboard, predictions);
-            generateInsights(predictions, dashboard);
-            assessDataQuality(dashboard);
-
-        } catch (error) {
-            ErrorHandler.handle(error, 'Load Analytics');
-            showErrorState();
-        }
-    }
-
-    // --- Prediction Cards ---
-    function updatePredictionCards(predictions, dashboard) {
-        const dailyTrend = dashboard?.daily_trend || [];
-        const summary = dashboard?.summary || {};
-        
-        let nextMonthPrediction = 0;
-        let dailyAverage = 0;
-        let confidence = 'low';
-
-        if (dailyTrend.length > 0) {
-            const amounts = dailyTrend.map(d => parseFloat(d.amount) || 0);
-            dailyAverage = amounts.reduce((a, b) => a + b, 0) / amounts.length;
-            nextMonthPrediction = dailyAverage * 30;
-            
-            if (dailyTrend.length >= 30) confidence = 'high';
-            else if (dailyTrend.length >= 15) confidence = 'medium';
-        }
-
-        if (predictions && !predictions.error) {
-            nextMonthPrediction = predictions.next_month_prediction || nextMonthPrediction;
-            confidence = predictions.confidence || confidence;
-        }
-
-        document.getElementById('predictionNextMonth').textContent = Utils.formatCurrency(nextMonthPrediction);
-        document.getElementById('averageDaily').textContent = Utils.formatCurrency(dailyAverage);
-
-        const confidenceText = { 
-            high: 'High Confidence (90%+)', 
-            medium: 'Medium Confidence (70-90%)', 
-            low: 'Low Confidence (<70%)' 
-        };
-        document.getElementById('confidenceLevel').textContent = confidenceText[confidence] || 'Calculating...';
-
-        if (dailyTrend.length >= 14) {
-            const recentAvg = dailyTrend.slice(-7).reduce((sum, d) => sum + parseFloat(d.amount || 0), 0) / 7;
-            const olderAvg = dailyTrend.slice(-14, -7).reduce((sum, d) => sum + parseFloat(d.amount || 0), 0) / 7;
-            const change = olderAvg > 0 ? ((recentAvg - olderAvg) / olderAvg * 100).toFixed(1) : 0;
-            
-            const trendText = change > 0 ? `↑ ${change}% vs previous period` : `↓ ${Math.abs(change)}% vs previous period`;
-            document.getElementById('trendIndicator').textContent = trendText;
-        } else {
-            document.getElementById('trendIndicator').textContent = 'Insufficient data for trend analysis';
-        }
-
-        const accuracyPercent = confidence === 'high' ? 90 : confidence === 'medium' ? 75 : 60;
-        setTimeout(() => {
-            document.getElementById('accuracyBar').style.width = `${accuracyPercent}%`;
-        }, 100);
-
-        document.getElementById('dataPointsCount').textContent = dailyTrend.length;
-        document.getElementById('predictionConfidence').textContent = confidence.toUpperCase();
-        document.getElementById('totalExpensesAnalytics').textContent = Utils.formatCurrency(summary.total_expenses || 0);
-        document.getElementById('transactionCount').textContent = summary.transaction_count || 0;
-        document.getElementById('avgPerTransaction').textContent = Utils.formatCurrency(summary.average_transaction || 0);
-    }
-
-    // --- Statistics ---
-    function updateStatistics(dashboard, predictions) {
-        const daily = dashboard?.daily_trend || [];
-        
-        if (!daily.length) {
-            ['dailyAvg', 'weeklyAvg', 'monthlyAvg'].forEach(id => 
-                document.getElementById(id).textContent = 'Rs. 0'
-            );
-            return;
-        }
-
-        const amounts = daily.map(d => parseFloat(d.amount) || 0);
-        const avgDaily = amounts.reduce((a, b) => a + b, 0) / amounts.length;
-
-        document.getElementById('dailyAvg').textContent = Utils.formatCurrency(avgDaily);
-        document.getElementById('weeklyAvg').textContent = Utils.formatCurrency(avgDaily * 7);
-        document.getElementById('monthlyAvg').textContent = Utils.formatCurrency(avgDaily * 30);
-
-        const highest = Math.max(...amounts);
-        const lowest = Math.min(...amounts.filter(a => a > 0));
-        const highestDay = daily.find(d => parseFloat(d.amount) === highest);
-        const lowestDay = daily.find(d => parseFloat(d.amount) === lowest);
-
-        document.getElementById('highestDay').textContent = highestDay ? 
-            `${Utils.formatCurrency(highest)} (${Utils.formatDate(highestDay.date)})` : '-';
-        document.getElementById('lowestDay').textContent = lowestDay && lowest !== Infinity ? 
-            `${Utils.formatCurrency(lowest)} (${Utils.formatDate(lowestDay.date)})` : '-';
-
-        if (daily.length >= 14) {
-            const recentAvg = amounts.slice(-7).reduce((a, b) => a + b, 0) / Math.min(7, amounts.length);
-            const olderAvg = amounts.slice(0, Math.min(7, amounts.length)).reduce((a, b) => a + b, 0) / Math.min(7, amounts.length);
-            const slope = recentAvg - olderAvg;
-            
-            const trendDir = slope > 0 ? 'Increasing ↗' : slope < 0 ? 'Decreasing ↘' : 'Stable →';
-            const trendColor = slope > 0 ? 'text-danger' : slope < 0 ? 'text-success' : 'text-muted';
-
-            const trendElem = document.getElementById('trendDirection');
-            trendElem.textContent = trendDir;
-            trendElem.className = trendColor;
-
-            const changePercent = olderAvg > 0 ? Math.abs(slope / olderAvg) * 100 : 0;
-            const strength = changePercent > 20 ? 'Strong' : changePercent > 10 ? 'Moderate' : 'Weak';
-            document.getElementById('trendStrength').textContent = strength;
-        } else {
-            document.getElementById('trendDirection').textContent = 'Insufficient data';
-            document.getElementById('trendStrength').textContent = '-';
-        }
-
-        document.getElementById('dataPoints').textContent = daily.length;
-
-        const variance = amounts.reduce((sum, val) => sum + Math.pow(val - avgDaily, 2), 0) / amounts.length;
-        const stdDev = Math.sqrt(variance);
-        document.getElementById('variance').textContent = Utils.formatCurrency(stdDev);
-
-        const cv = avgDaily > 0 ? (stdDev / avgDaily) * 100 : 0;
-        const consistency = cv < 30 ? 'High' : cv < 60 ? 'Medium' : 'Low';
-        document.getElementById('consistency').textContent = consistency;
-    }
-
-    // --- Charts ---
-    function updateCharts(dashboard, predictions) {
-        const dailyTrend = dashboard?.daily_trend || [];
-        const byCategory = dashboard?.by_category || [];
-        
-        updatePredictionChart(dailyTrend);
-        updateWeekdayChart(dailyTrend);
-        updateCategoryComparisonChart(byCategory);
-    }
-
-    function updatePredictionChart(historicalData) {
-        const ctx = document.getElementById('predictionChart');
-        if (!ctx) return;
-        
-        if (predictionChart) predictionChart.destroy();
-
-        const data = historicalData.length > 0 ? historicalData : [
-            { date: new Date().toISOString().split('T')[0], amount: 0 }
-        ];
-
-        predictionChart = new Chart(ctx.getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: data.map(d => Utils.formatDate(d.date)),
-                datasets: [{
-                    label: 'Daily Expenses',
-                    data: data.map(d => parseFloat(d.amount) || 0),
-                    borderColor: '#3B82F6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    pointRadius: 3,
-                    pointHoverRadius: 5
-                }]
+      const cats = (data.by_category || []).slice(0, 7);
+      const catColors = ['#7c3aed', '#10b981', '#f59e0b', '#f43f5e', '#0ea5e9', '#ec4899', '#06b6d4'];
+      destroyChart('catBar');
+      charts.catBar = new Chart(document.getElementById('catBarChart'), {
+        type: 'bar',
+        data: {
+          labels: cats.map(c => c.category__name || 'Other'),
+          datasets: [{
+            data: cats.map(c => parseFloat(c.total) || 0),
+            backgroundColor: catColors,
+            borderRadius: 6,
+          }],
+        },
+        options: {
+          ...baseChartOpts,
+          indexAxis: 'y',
+          scales: {
+            x: {
+              beginAtZero: true,
+              grid: { color: 'rgba(128,128,128,0.08)' },
+              ticks: { font: { size: 11 }, color: '#9ca3af', callback: v => Utils.formatCompactCurrency(v) },
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: (ctx) => Utils.formatCurrency(ctx.parsed.y)
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: (val) => 'Rs. ' + val.toLocaleString()
-                        }
-                    }
-                }
-            }
-        });
-    }
+            y: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#9ca3af' } },
+          },
+        },
+      });
 
-    function updateWeekdayChart(data) {
-        const ctx = document.getElementById('weekdayChart');
-        if (!ctx) return;
-        
-        if (weekdayChart) weekdayChart.destroy();
-
-        const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        const totals = Array(7).fill(0);
-        const counts = Array(7).fill(0);
-
-        data.forEach(d => {
-            const day = new Date(d.date).getDay();
-            totals[day] += parseFloat(d.amount) || 0;
-            counts[day]++;
-        });
-
-        const avgData = totals.map((total, i) => counts[i] > 0 ? total / counts[i] : 0);
-
-        weekdayChart = new Chart(ctx.getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: weekdays,
-                datasets: [{
-                    label: 'Avg Spending',
-                    data: avgData,
-                    backgroundColor: ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#F97316']
-                }]
+      const pays = data.by_payment || [];
+      const payColors = ['#7c3aed', '#10b981', '#f59e0b', '#0ea5e9', '#f43f5e', '#64748b'];
+      destroyChart('pay');
+      charts.pay = new Chart(document.getElementById('payChart'), {
+        type: 'doughnut',
+        data: {
+          labels: pays.map(p => p.payment_method),
+          datasets: [{ data: pays.map(p => parseFloat(p.total) || 0), backgroundColor: payColors, borderWidth: 2, borderColor: 'transparent' }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '65%',
+          plugins: {
+            legend: { position: 'right', labels: { font: { size: 12 }, boxWidth: 10, padding: 12, color: '#9ca3af' } },
+            tooltip: {
+              backgroundColor: '#14141e',
+              callbacks: { label: c => ` ${c.label}: ${Utils.formatCurrency(c.raw)}` },
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: (ctx) => Utils.formatCurrency(ctx.parsed.y)
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: (val) => 'Rs. ' + val.toLocaleString()
-                        }
-                    }
-                }
-            }
+          },
+        },
+      });
+
+      buildInsights(data);
+    } catch (e) { Toast.error('Failed to load analytics: ' + e.message); }
+  }
+
+  function buildInsights(data) {
+    const insights = [];
+    const cats = data.by_category || [];
+    const total = data.summary.total;
+    if (cats.length > 0 && total > 0) {
+      const top = cats[0];
+      const share = ((parseFloat(top.total) / total) * 100).toFixed(0);
+      insights.push({
+        icon: 'fa-chart-pie', color: '#7c3aed',
+        title: `${top.category__name} leads your spending`,
+        desc: `${share}% of total (${Utils.formatCurrency(top.total)}) across ${top.count} transaction${top.count > 1 ? 's' : ''}.`,
+      });
+    }
+    const wp = data.weekly_pattern || [];
+    if (wp.length === 7) {
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      const maxDayIdx = wp.indexOf(Math.max(...wp));
+      if (wp[maxDayIdx] > 0) {
+        insights.push({
+          icon: 'fa-calendar-week', color: '#f59e0b',
+          title: `Highest spending on ${days[maxDayIdx]}s`,
+          desc: `${Utils.formatCurrency(wp[maxDayIdx])} spent on ${days[maxDayIdx]}s in this period.`,
         });
+      }
     }
-
-    function updateCategoryComparisonChart(categories) {
-        const ctx = document.getElementById('categoryComparisonChart');
-        if (!ctx) return;
-        
-        if (categoryComparisonChart) categoryComparisonChart.destroy();
-
-        if (!categories || categories.length === 0) {
-            categories = [{ category__name: 'No Data', total: 0, count: 0 }];
-        }
-
-        categoryComparisonChart = new Chart(ctx.getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: categories.map(c => c.category__name || 'Uncategorized'),
-                datasets: [
-                    {
-                        label: 'Total Spending',
-                        data: categories.map(c => parseFloat(c.total) || 0),
-                        backgroundColor: '#3B82F6',
-                        yAxisID: 'y'
-                    },
-                    {
-                        label: 'Transaction Count',
-                        data: categories.map(c => c.count || 0),
-                        backgroundColor: '#10B981',
-                        yAxisID: 'y1'
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                scales: {
-                    y: {
-                        type: 'linear',
-                        position: 'left',
-                        ticks: {
-                            callback: (val) => 'Rs. ' + val.toLocaleString()
-                        }
-                    },
-                    y1: {
-                        type: 'linear',
-                        position: 'right',
-                        grid: {
-                            drawOnChartArea: false
-                        }
-                    }
-                }
-            }
-        });
+    if (data.summary.spending_streak >= 3) {
+      insights.push({
+        icon: 'fa-fire', color: '#f43f5e',
+        title: `${data.summary.spending_streak}-day spending streak`,
+        desc: "You've recorded expenses every day recently.",
+      });
     }
-
-    // --- Insights ---
-    function generateInsights(predictions, dashboard) {
-        const insights = [];
-        const dailyTrend = dashboard?.daily_trend || [];
-        const byCategory = dashboard?.by_category || [];
-
-        if (dailyTrend.length >= 7) {
-            const lastWeek = dailyTrend.slice(-7);
-            const avgLastWeek = lastWeek.reduce((sum, d) => sum + parseFloat(d.amount || 0), 0) / 7;
-            
-            if (dailyTrend.length >= 14) {
-                const prevWeek = dailyTrend.slice(-14, -7);
-                const avgPrevWeek = prevWeek.reduce((sum, d) => sum + parseFloat(d.amount || 0), 0) / 7;
-                const change = avgPrevWeek > 0 ? ((avgLastWeek - avgPrevWeek) / avgPrevWeek) * 100 : 0;
-                
-                if (Math.abs(change) > 10) {
-                    const dir = change > 0 ? 'increased' : 'decreased';
-                    const icon = change > 0 ? 'arrow-up text-danger' : 'arrow-down text-success';
-                    insights.push(`<p class="small mb-2"><i class="fas fa-${icon}"></i> Spending ${dir} by ${Math.abs(change).toFixed(1)}% vs previous period.</p>`);
-                }
-            }
-        }
-
-        if (byCategory.length > 0) {
-            const top = byCategory[0];
-            const categoryName = top.category__name || 'Uncategorized';
-            insights.push(`<p class="small mb-2"><i class="fas fa-trophy text-warning"></i> Top category: ${categoryName} (${Utils.formatCurrency(top.total)}).</p>`);
-        }
-
-        if (predictions && !predictions.error && predictions.confidence) {
-            const conf = predictions.confidence;
-            if (conf === 'high') {
-                insights.push('<p class="small mb-2"><i class="fas fa-check-circle text-success"></i> High confidence predictions available.</p>');
-            } else if (conf === 'low') {
-                insights.push('<p class="small mb-2"><i class="fas fa-info-circle text-warning"></i> Low confidence. Add more expense data for better predictions.</p>');
-            }
-        }
-
-        if (dailyTrend.length < 7) {
-            insights.push('<p class="small mb-0"><i class="fas fa-exclamation-triangle text-warning"></i> Add more expenses to unlock detailed analytics.</p>');
-        }
-
-        document.getElementById('insights').innerHTML = insights.length > 0 ? 
-            insights.join('') : 
-            '<p class="text-muted small">Start adding expenses to see insights!</p>';
+    const el = document.getElementById('insightsList');
+    if (!insights.length) {
+      el.innerHTML = `<div class="empty-state" style="padding:20px 0"><div class="empty-state__sub">Add more expenses to unlock insights</div></div>`;
+      return;
     }
+    el.innerHTML = insights.map(ins => `
+      <div class="insight-card">
+        <div class="insight-icon" style="background:${ins.color}18;color:${ins.color}"><i class="fa-solid ${ins.icon}"></i></div>
+        <div>
+          <div class="insight-title">${Utils.escapeHtml(ins.title)}</div>
+          <div class="insight-desc">${Utils.escapeHtml(ins.desc)}</div>
+        </div>
+      </div>`).join('');
+  }
 
-    // --- Data Quality ---
-    function assessDataQuality(dashboard) {
-        const points = dashboard?.daily_trend?.length || 0;
-        let quality, text, badgeClass;
+  async function loadPredictions(days = 30) {
+    try {
+      const data = await api.get(`/analytics/predictions/?days=${days}`, false);
+      const pred = data.recommended_prediction ?? 0;
+      document.getElementById('mlPred').textContent = Utils.formatCurrency(pred);
+      document.getElementById('mlSub').textContent = `Predicted spending for next ${days} days`;
+      document.getElementById('mlConf').textContent = `${data.confidence || '—'} (R²=${(data.confidence_score ?? 0).toFixed(2)})`;
+      if (data.confidence_interval) {
+        document.getElementById('mlRange').textContent = `${Utils.formatCurrency(data.confidence_interval.min)} – ${Utils.formatCurrency(data.confidence_interval.max)}`;
+      }
+      const trendMap = { increasing: '↑ Increasing', decreasing: '↓ Decreasing', stable: '→ Stable', insufficient_data: 'Need more data' };
+      document.getElementById('mlTrend').textContent = trendMap[data.trend] || '→ Stable';
 
-        if (points >= 30) {
-            quality = 'Excellent';
-            text = `${points} data points. Highly reliable predictions.`;
-            badgeClass = 'quality-excellent';
-        } else if (points >= 15) {
-            quality = 'Good';
-            text = `${points} data points. Moderately reliable predictions.`;
-            badgeClass = 'quality-good';
-        } else if (points >= 5) {
-            quality = 'Fair';
-            text = `${points} data points. Add more data for better accuracy.`;
-            badgeClass = 'quality-fair';
-        } else {
-            quality = 'Poor';
-            text = `Only ${points} data points. At least 5 needed for predictions.`;
-            badgeClass = 'quality-poor';
-        }
-
-        document.getElementById('dataQualityText').textContent = text;
-        const badge = document.getElementById('dataQualityBadge');
-        badge.textContent = quality;
-        badge.className = `data-quality-indicator ${badgeClass}`;
+      const wEl = document.getElementById('mlWindows');
+      if (data.window_breakdown?.length) {
+        wEl.innerHTML = data.window_breakdown.map(w => `
+          <div class="window-row">
+            <span>${Utils.escapeHtml(w.window)} (${w.non_zero} active days)</span>
+            <span style="font-family:var(--font-mono)">${Utils.formatCurrency(w.lr_daily)}/day · R²=${w.r_squared.toFixed(2)}</span>
+          </div>`).join('');
+      } else {
+        wEl.innerHTML = `<div class="window-row"><span>${Utils.escapeHtml(data.message || 'Log expenses over at least 3 days to see window breakdowns.')}</span></div>`;
+      }
+    } catch {
+      document.getElementById('mlPred').textContent = 'Need more data';
+      document.getElementById('mlSub').textContent = 'Add at least 3 days of expenses to generate predictions';
     }
+  }
 
-    // --- Set Period ---
-    async function setPeriod(period, event) {
-        currentPeriod = period;
-        
-        // Update active button
-        document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
-        if (event && event.currentTarget) {
-            event.currentTarget.classList.add('active');
-        }
-        
-        const periodNames = {
-            'week': '7 days',
-            'month': '30 days',
-            'quarter': '90 days'
-        };
-        
-        NotificationManager.info(`Switching to ${periodNames[period]} view...`);
-        await loadAnalytics();
-    }
+  document.querySelectorAll('.period-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.period-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentPeriod = btn.dataset.period;
+      loadAnalytics(currentPeriod);
+    });
+  });
 
-    // --- Refresh Predictions ---
-    async function refreshPredictions() {
-        NotificationManager.info('Refreshing analytics...');
-        await loadAnalytics();
-        NotificationManager.success('Analytics updated!');
-    }
+  document.getElementById('forecastDays').addEventListener('change', e => loadPredictions(e.target.value));
+  document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
 
-    // --- Show Error State ---
-    function showErrorState() {
-        ['predictionNextMonth', 'averageDaily'].forEach(id => 
-            document.getElementById(id).textContent = 'Error'
-        );
-        document.getElementById('confidenceLevel').textContent = 'Failed to load';
-        document.getElementById('dataQualityText').textContent = 'Error loading data';
-    }
-
-    // --- Public API ---
-    return { init, setPeriod, refreshPredictions };
-
-})();
-
-// Initialize on DOM load
-document.addEventListener('DOMContentLoaded', AnalyticsApp.init);
-    </script>
+  loadAnalytics(currentPeriod);
+  loadPredictions(30);
+});
+</script>
 </body>
 </html>

@@ -1,768 +1,548 @@
-/**
- * Core Application Module - OPTIMIZED VERSION - FIXED
- * Django REST Framework Token Authentication
- */
-
-// ================= CONFIG =================
 const CONFIG = {
-    API_URL: 'http://localhost:8000/api',
-    CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
-    MAX_RETRIES: 3,
-    RETRY_DELAY: 1000,
-    REQUEST_TIMEOUT: 30000, // 30 seconds
-    MAX_CACHE_SIZE: 50 // Maximum number of cached items
+  API_URL: 'http://localhost:8000/api',
+  CACHE_TTL: 3 * 60 * 1000,
+  TIMEOUT: 20000,
+  MAX_RETRIES: 2,
+  RETRY_DELAY: 800,
 };
 
-// ================= AUTH MANAGER =================
+const CURRENCY_SYMBOLS = {
+  NPR: 'Rs.',
+  USD: '$',
+  EUR: '€',
+  INR: '₹',
+  GBP: '£',
+};
+
+/* ── Resolve login.html path relative to current page location ── */
+function loginPath() {
+  const parts = window.location.pathname.split('/');
+  parts[parts.length - 1] = 'login.html';
+  return parts.join('/');
+}
+
+/* ──────────────── THEME MANAGER ──────────────── */
+const ThemeManager = {
+  STORAGE_KEY: 'ems_theme',
+
+  get() {
+    return localStorage.getItem(this.STORAGE_KEY) || 'system';
+  },
+
+  apply(theme) {
+    const mode = theme || this.get();
+    localStorage.setItem(this.STORAGE_KEY, mode);
+    if (mode === 'light' || mode === 'dark') {
+      document.documentElement.setAttribute('data-theme', mode);
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  },
+};
+
+// Apply saved theme immediately before first paint
+ThemeManager.apply();
+
+/* ──────────────── AUTH MANAGER ──────────────── */
 class AuthManager {
-    constructor() {
-        this.token = this.getToken();
-        this.user = this.getUser();
-        this._authCheckPromise = null; // Cache auth check promise
+  constructor() {
+    this.token = sessionStorage.getItem('ems_token') || localStorage.getItem('ems_token');
+    this.user  = this._parseUser();
+    if (this.user?.theme) ThemeManager.apply(this.user.theme);
+  }
+
+  _parseUser() {
+    try {
+      const raw = sessionStorage.getItem('ems_user') || localStorage.getItem('ems_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  }
+
+  setSession(token, user, remember = false) {
+    const store = remember ? localStorage : sessionStorage;
+    store.setItem('ems_token', token);
+    store.setItem('ems_user', JSON.stringify(user));
+    this.token = token;
+    this.user  = user;
+    if (user?.theme) ThemeManager.apply(user.theme);
+  }
+
+  updateStoredUser(partial) {
+    if (!this.user) return;
+    this.user = { ...this.user, ...partial };
+    const serialized = JSON.stringify(this.user);
+    if (localStorage.getItem('ems_user')) localStorage.setItem('ems_user', serialized);
+    if (sessionStorage.getItem('ems_user')) sessionStorage.setItem('ems_user', serialized);
+    if (partial.theme) ThemeManager.apply(partial.theme);
+  }
+
+  clear() {
+    ['ems_token', 'ems_user'].forEach(k => {
+      sessionStorage.removeItem(k);
+      localStorage.removeItem(k);
+    });
+    this.token = null;
+    this.user  = null;
+  }
+
+  isAuthenticated() { return !!this.token; }
+
+  getHeaders() {
+    const h = { 'Content-Type': 'application/json' };
+    if (this.token) h['Authorization'] = `Token ${this.token}`;
+    return h;
+  }
+
+  _timedFetch(url, opts, ms = CONFIG.TIMEOUT) {
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, { ...opts, signal: ctrl.signal })
+      .finally(() => clearTimeout(tid));
+  }
+
+  async login(username, password, remember = false) {
+    try {
+      const res  = await this._timedFetch(`${CONFIG.API_URL}/auth/login/`, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Login failed.');
+      this.setSession(data.token, data.user, remember);
+      return { success: true, user: data.user };
+    } catch (e) {
+      if (e.name === 'AbortError')
+        return { success: false, error: 'Request timed out. Is the backend running on port 8000?' };
+      if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError') || e.message.includes('fetch'))
+        return { success: false, error: 'Cannot connect to backend. Make sure Django is running on http://localhost:8000' };
+      return { success: false, error: e.message };
     }
+  }
 
-    getToken() {
-        return sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+  async register(payload) {
+    try {
+      const res = await this._timedFetch(`${CONFIG.API_URL}/auth/register/`, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body   : JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        const errMsg = data.error || extractApiError(data, 'Registration failed.');
+        throw new Error(errMsg);
+      }
+      this.setSession(data.token, data.user, false);
+      return { success: true, user: data.user };
+    } catch (e) {
+      if (e.name === 'AbortError')
+        return { success: false, error: 'Request timed out. Is the backend running on port 8000?' };
+      if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError') || e.message.includes('fetch'))
+        return { success: false, error: 'Cannot connect to backend. Make sure Django is running on http://localhost:8000' };
+      return { success: false, error: e.message };
     }
+  }
 
-    setToken(token, remember = false) {
-        const storage = remember ? localStorage : sessionStorage;
-        storage.setItem('auth_token', token);
-        this.token = token;
+  async logout() {
+    if (this.token) {
+      fetch(`${CONFIG.API_URL}/auth/logout/`, {
+        method   : 'POST',
+        headers  : this.getHeaders(),
+        keepalive: true,
+      }).catch(() => {});
     }
+    this.clear();
+    window.location.href = loginPath();
+  }
 
-    getUser() {
-        const raw = sessionStorage.getItem('user') || localStorage.getItem('user');
-        try {
-            return raw ? JSON.parse(raw) : null;
-        } catch (e) {
-            console.warn('Failed to parse user data:', e);
-            return null;
-        }
+  async verify() {
+    if (!this.token) return false;
+    try {
+      const res = await this._timedFetch(
+        `${CONFIG.API_URL}/auth/verify/`,
+        { headers: this.getHeaders() },
+        5000
+      );
+      if (!res.ok) { this.clear(); return false; }
+      const data = await res.json();
+      if (data.authenticated) {
+        this.updateStoredUser(data.user);
+        return true;
+      }
+      this.clear();
+      return false;
+    } catch {
+      // Network down — don't clear session, let user stay on page
+      return false;
     }
-
-    setUser(user, remember = false) {
-        const storage = remember ? localStorage : sessionStorage;
-        storage.setItem('user', JSON.stringify(user));
-        this.user = user;
-    }
-
-    async login(username, password, remember = false) {
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT);
-
-            const response = await fetch(`${CONFIG.API_URL}/auth/login/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password }),
-                signal: controller.signal
-            });
-
-            clearTimeout(timeoutId);
-
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                throw new Error(data.error || 'Login failed');
-            }
-
-            this.setToken(data.token, remember);
-            this.setUser(data.user, remember);
-            this._authCheckPromise = null; // Reset auth check cache
-
-            return { success: true, user: data.user };
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                return { success: false, error: 'Request timeout - please try again' };
-            }
-            return { success: false, error: error.message };
-        }
-    }
-
-    async logout() {
-        try {
-            if (this.token) {
-                // Don't wait for logout response
-                fetch(`${CONFIG.API_URL}/auth/logout/`, {
-                    method: 'POST',
-                    headers: this.getHeaders(),
-                    keepalive: true // Ensures request completes even if page unloads
-                }).catch(() => {}); // Ignore errors
-            }
-        } finally {
-            this.clearAuthData();
-            window.location.href = 'index.html';
-        }
-    }
-
-    clearAuthData() {
-        sessionStorage.clear();
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user');
-        this.token = null;
-        this.user = null;
-        this._authCheckPromise = null;
-    }
-
-    async checkAuth() {
-        // Return cached promise if already checking
-        if (this._authCheckPromise) {
-            return this._authCheckPromise;
-        }
-
-        if (!this.token) {
-            return false;
-        }
-
-        this._authCheckPromise = (async () => {
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-                const response = await fetch(`${CONFIG.API_URL}/auth/verify/`, {
-                    headers: this.getHeaders(),
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-
-                if (!response.ok) throw new Error('Auth check failed');
-
-                const data = await response.json();
-                if (data.authenticated) {
-                    this.user = data.user;
-                    return true;
-                }
-                return false;
-            } catch (error) {
-                console.warn('Auth verification failed:', error);
-                this.clearAuthData();
-                return false;
-            } finally {
-                // Clear promise cache after 5 seconds
-                setTimeout(() => {
-                    this._authCheckPromise = null;
-                }, 5000);
-            }
-        })();
-
-        return this._authCheckPromise;
-    }
-
-    isAuthenticated() {
-        return !!this.token;
-    }
-
-    getHeaders() {
-        const headers = { 'Content-Type': 'application/json' };
-        if (this.token) {
-            headers['Authorization'] = `Token ${this.token}`;
-        }
-        return headers;
-    }
+  }
 }
 
-// ================= CACHE MANAGER =================
+function extractApiError(data, fallback) {
+  if (!data || typeof data !== 'object') return fallback;
+  if (typeof data.message === 'string') return data.message;
+  if (typeof data.detail === 'string') return data.detail;
+  if (typeof data.error === 'string') return data.error;
+  for (const [field, val] of Object.entries(data)) {
+    if (Array.isArray(val) && val.length) {
+      return field === 'non_field_errors' ? String(val[0]) : `${field}: ${val[0]}`;
+    }
+    if (typeof val === 'string') return `${field}: ${val}`;
+  }
+  return fallback;
+}
+
+/* ──────────────── CACHE MANAGER ──────────────── */
 class CacheManager {
-    constructor() {
-        this.cache = new Map();
-        this.accessCount = new Map(); // Track access frequency
+  constructor() { this._store = new Map(); }
+
+  set(key, data, ttl = CONFIG.CACHE_TTL) {
+    this._store.set(key, { data, expires: Date.now() + ttl });
+  }
+
+  get(key) {
+    const item = this._store.get(key);
+    if (!item) return null;
+    if (Date.now() > item.expires) { this._store.delete(key); return null; }
+    return item.data;
+  }
+
+  invalidate(prefix = '') {
+    if (!prefix) { this._store.clear(); return; }
+    for (const k of this._store.keys()) {
+      if (k.startsWith(prefix)) this._store.delete(k);
     }
-
-    set(key, data, duration = CONFIG.CACHE_DURATION) {
-        // Implement LRU eviction if cache is full
-        if (this.cache.size >= CONFIG.MAX_CACHE_SIZE) {
-            this.evictLRU();
-        }
-
-        this.cache.set(key, {
-            data,
-            timestamp: Date.now(),
-            duration
-        });
-        this.accessCount.set(key, 0);
-    }
-
-    get(key) {
-        const item = this.cache.get(key);
-        if (!item) return null;
-
-        // Check expiration
-        if (Date.now() - item.timestamp > item.duration) {
-            this.cache.delete(key);
-            this.accessCount.delete(key);
-            return null;
-        }
-
-        // Update access count for LRU
-        this.accessCount.set(key, (this.accessCount.get(key) || 0) + 1);
-        return item.data;
-    }
-
-    evictLRU() {
-        // Find least recently used item
-        let lruKey = null;
-        let minAccess = Infinity;
-
-        for (const [key, count] of this.accessCount.entries()) {
-            if (count < minAccess) {
-                minAccess = count;
-                lruKey = key;
-            }
-        }
-
-        if (lruKey) {
-            this.cache.delete(lruKey);
-            this.accessCount.delete(lruKey);
-        }
-    }
-
-    clear(key) {
-        if (key) {
-            this.cache.delete(key);
-            this.accessCount.delete(key);
-        } else {
-            this.cache.clear();
-            this.accessCount.clear();
-        }
-    }
-
-    clearAll() {
-        this.cache.clear();
-        this.accessCount.clear();
-    }
-
-    getStats() {
-        return {
-            size: this.cache.size,
-            maxSize: CONFIG.MAX_CACHE_SIZE,
-            items: Array.from(this.cache.keys())
-        };
-    }
+  }
 }
 
-// ================= API MANAGER =================
+/* ──────────────── API MANAGER ──────────────── */
 class APIManager {
-    constructor(auth, cache) {
-        this.auth = auth;
-        this.cache = cache;
-        this.pendingRequests = new Map(); // Deduplicate simultaneous requests
-    }
+  constructor(auth, cache) {
+    this.auth     = auth;
+    this.cache    = cache;
+    this._pending = new Map();
+  }
 
-    async request(url, options = {}, retries = CONFIG.MAX_RETRIES) {
-        const fullUrl = `${CONFIG.API_URL}${url}`;
-        const requestKey = `${options.method || 'GET'}:${url}`;
+  _timedFetch(url, opts, ms = CONFIG.TIMEOUT) {
+    const ctrl = new AbortController();
+    const tid  = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, { ...opts, signal: ctrl.signal })
+      .finally(() => clearTimeout(tid));
+  }
 
-        // Deduplicate simultaneous identical requests
-        if (this.pendingRequests.has(requestKey)) {
-            return this.pendingRequests.get(requestKey);
+  async _request(url, opts = {}, retries = CONFIG.MAX_RETRIES) {
+    const full = `${CONFIG.API_URL}${url}`;
+    const key  = `${opts.method || 'GET'}:${url}`;
+    const deduplicate = (opts.method || 'GET') === 'GET';
+
+    if (deduplicate && this._pending.has(key)) return this._pending.get(key);
+
+    const promise = (async () => {
+      try {
+        const res = await this._timedFetch(full, {
+          ...opts,
+          headers: { ...this.auth.getHeaders(), ...(opts.headers || {}) },
+        });
+
+        if (res.status === 401) { await this.auth.logout(); throw new Error('Session expired.'); }
+        if (res.status === 204) return {};
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(extractApiError(data, `HTTP ${res.status}`));
         }
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT);
-
-        const requestPromise = (async () => {
-            try {
-                const response = await fetch(fullUrl, {
-                    ...options,
-                    headers: {
-                        ...this.auth.getHeaders(),
-                        ...options.headers
-                    },
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-
-                // Handle 401 Unauthorized
-                if (response.status === 401) {
-                    await this.auth.logout();
-                    throw new Error('Session expired');
-                }
-
-                // Handle other error statuses
-                if (!response.ok) {
-                    const contentType = response.headers.get('content-type');
-                    let errorMessage = `HTTP ${response.status}`;
-
-                    if (contentType?.includes('application/json')) {
-                        const err = await response.json().catch(() => ({}));
-                        errorMessage = err.detail || err.error || err.message || errorMessage;
-                    }
-
-                    throw new Error(errorMessage);
-                }
-
-                return await response.json();
-
-            } catch (error) {
-                clearTimeout(timeoutId);
-
-                // Handle timeout
-                if (error.name === 'AbortError') {
-                    throw new Error('Request timeout - please try again');
-                }
-
-                // Retry on network errors
-                if (retries > 0 && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {
-                    await this.delay(CONFIG.RETRY_DELAY);
-                    return this.request(url, options, retries - 1);
-                }
-
-                throw error;
-            } finally {
-                this.pendingRequests.delete(requestKey);
-            }
-        })();
-
-        this.pendingRequests.set(requestKey, requestPromise);
-        return requestPromise;
-    }
-
-    async get(url, useCache = true) {
-        const key = `GET:${url}:${this.auth.user?.id || 'anon'}`;
-
-        if (useCache) {
-            const cached = this.cache.get(key);
-            if (cached) {
-                console.debug('Cache hit:', key);
-                return cached;
-            }
-        }
-
-        const data = await this.request(url);
-        if (useCache) this.cache.set(key, data);
         return data;
-    }
 
-    post(url, body) {
-        this.cache.clearAll(); // Clear all cache on mutations
-        return this.request(url, {
-            method: 'POST',
-            body: JSON.stringify(body)
-        });
-    }
+      } catch (e) {
+        if (e.name === 'AbortError') throw new Error('Request timed out.');
+        if (retries > 0 && (
+          e.message.includes('fetch') ||
+          e.message.includes('network') ||
+          e.message.includes('Failed') ||
+          e.message.includes('NetworkError')
+        )) {
+          await new Promise(r => setTimeout(r, CONFIG.RETRY_DELAY));
+          if (this._pending.get(key) === promise) this._pending.delete(key);
+          return this._request(url, opts, retries - 1);
+        }
+        throw e;
+      } finally {
+        if (this._pending.get(key) === promise) this._pending.delete(key);
+      }
+    })();
 
-    put(url, body) {
-        this.cache.clearAll();
-        return this.request(url, {
-            method: 'PUT',
-            body: JSON.stringify(body)
-        });
-    }
+    if (deduplicate) this._pending.set(key, promise);
+    return promise;
+  }
 
-    patch(url, body) {
-        this.cache.clearAll();
-        return this.request(url, {
-            method: 'PATCH',
-            body: JSON.stringify(body)
-        });
-    }
+  async getAll(url) {
+    const separator = url.indexOf('?');
+    const path = separator < 0 ? url : url.slice(0, separator);
+    const params = new URLSearchParams(separator < 0 ? '' : url.slice(separator + 1));
+    params.set('page_size', '200');
 
-    delete(url) {
-        this.cache.clearAll();
-        return this.request(url, { method: 'DELETE' });
+    const results = [];
+    for (let page = 1; ; page++) {
+      params.set('page', String(page));
+      const data = await this.get(`${path}?${params.toString()}`, false);
+      if (Array.isArray(data)) return data;
+      if (!Array.isArray(data.results)) throw new Error('Invalid paginated response.');
+      results.push(...data.results);
+      if (!data.next || !data.results.length) return results;
     }
+  }
 
-    delay(ms) {
-        return new Promise(res => setTimeout(res, ms));
+  async get(url, useCache = true) {
+    const cacheKey = `GET:${url}:${this.auth.user?.id}`;
+    if (useCache) {
+      const cached = this.cache.get(cacheKey);
+      if (cached) return cached;
     }
+    const data = await this._request(url);
+    if (useCache) this.cache.set(cacheKey, data);
+    return data;
+  }
+
+  post(url, body)  { this.cache.invalidate(); return this._request(url, { method: 'POST',   body: JSON.stringify(body) }); }
+  put(url, body)   { this.cache.invalidate(); return this._request(url, { method: 'PUT',    body: JSON.stringify(body) }); }
+  patch(url, body) { this.cache.invalidate(); return this._request(url, { method: 'PATCH',  body: JSON.stringify(body) }); }
+  delete(url, body) {
+    this.cache.invalidate();
+    return this._request(url, {
+      method: 'DELETE',
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+  }
 }
 
-// ================= VALIDATION MANAGER =================
-class ValidationManager {
-    static sanitizeInput(input) {
-        if (typeof input !== 'string') return input;
-        // More comprehensive XSS protection
-        return input
-            .trim()
-            .replace(/[<>'"]/g, '') // Remove potentially dangerous characters
-            .substring(0, 10000); // Limit length
+/* ──────────────── TOAST NOTIFICATIONS ──────────────── */
+class Toast {
+  static _queue   = [];
+  static _visible = 0;
+  static MAX      = 3;
+
+  static show(msg, type = 'info', duration = 4500) {
+    if (this._visible >= this.MAX) { this._queue.push({ msg, type, duration }); return; }
+    this._render(msg, type, duration);
+  }
+
+  static _render(msg, type, duration) {
+    this._visible++;
+    const icons = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+
+    let container = document.getElementById('ems-toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'ems-toast-container';
+      document.body.appendChild(container);
     }
 
-    static validateExpense(expense) {
-        const errors = [];
+    const el = document.createElement('div');
+    el.className = `ems-toast ems-toast--${type}`;
+    el.innerHTML = `<span class="ems-toast__icon">${icons[type] || icons.info}</span><span>${Utils.escapeHtml(String(msg))}</span>`;
+    container.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('ems-toast--in'));
 
-        if (!expense.title || expense.title.trim().length < 1) {
-            errors.push('Title is required');
-        } else if (expense.title.length > 200) {
-            errors.push('Title must be less than 200 characters');
+    const remove = () => {
+      el.classList.remove('ems-toast--in');
+      el.addEventListener('transitionend', () => {
+        el.remove();
+        this._visible--;
+        if (this._queue.length) {
+          const next = this._queue.shift();
+          setTimeout(() => this._render(next.msg, next.type, next.duration), 80);
         }
+      }, { once: true });
+    };
 
-        const amount = parseFloat(expense.amount);
-        if (!expense.amount || isNaN(amount) || amount <= 0) {
-            errors.push('Amount must be greater than 0');
-        } else if (amount > 10000000) {
-            errors.push('Amount seems unreasonably high');
-        }
+    setTimeout(remove, duration);
+    el.addEventListener('click', remove);
+  }
 
-        if (!expense.category) {
-            errors.push('Category is required');
-        }
-
-        if (!expense.date) {
-            errors.push('Date is required');
-        } else {
-            const expenseDate = new Date(expense.date);
-            const today = new Date();
-            today.setHours(23, 59, 59, 999);
-            
-            if (expenseDate > today) {
-                errors.push('Date cannot be in the future');
-            }
-            
-            if (expenseDate.getFullYear() < 1900) {
-                errors.push('Date seems unreasonably old');
-            }
-        }
-
-        return {
-            isValid: errors.length === 0,
-            errors
-        };
-    }
-
-    static validateBudget(budget) {
-        const errors = [];
-
-        if (!budget.category) {
-            errors.push('Category is required');
-        }
-
-        const amount = parseFloat(budget.amount);
-        if (!budget.amount || isNaN(amount) || amount <= 0) {
-            errors.push('Budget amount must be greater than 0');
-        } else if (amount > 100000000) {
-            errors.push('Budget amount seems unreasonably high');
-        }
-
-        if (!budget.period) {
-            errors.push('Period is required');
-        } else if (!['weekly', 'monthly', 'yearly'].includes(budget.period)) {
-            errors.push('Invalid period selected');
-        }
-
-        return {
-            isValid: errors.length === 0,
-            errors
-        };
-    }
-
-    static validateEmail(email) {
-        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        return emailRegex.test(email);
-    }
-
-    static validatePassword(password) {
-        return password && password.length >= 6;
-    }
+  static success(m) { this.show(m, 'success'); }
+  static error(m)   { this.show(m, 'error', 7000); }
+  static warning(m) { this.show(m, 'warning', 5500); }
+  static info(m)    { this.show(m, 'info'); }
 }
 
-// ================= UI HELPERS =================
-class NotificationManager {
-    static notifications = [];
-    static maxNotifications = 3;
+/* ──────────────── UTILITIES ──────────────── */
+const Utils = {
+  safeIcon(icon, fallback = 'folder') {
+    return typeof icon === 'string' && /^[a-z0-9-]+$/.test(icon) ? icon : fallback;
+  },
 
-    static show(msg, type = 'info', duration = 5000) {
-        // Limit number of simultaneous notifications
-        if (this.notifications.length >= this.maxNotifications) {
-            const oldest = this.notifications.shift();
-            oldest?.remove();
-        }
+  getCurrencyCode() {
+    return auth?.user?.currency || 'NPR';
+  },
 
-        const el = document.createElement('div');
-        el.className = `alert alert-${type} app-notification alert-dismissible fade show`;
-        el.style.cssText = `
-            position: fixed;
-            top: ${20 + (this.notifications.length * 70)}px;
-            right: 20px;
-            z-index: 9999;
-            min-width: 300px;
-            max-width: 500px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            animation: slideIn 0.3s ease-out;
-        `;
-        el.innerHTML = `
-            <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
-            ${msg}
-        `;
+  getCurrencySymbol() {
+    if (auth?.user?.currency_symbol) return auth.user.currency_symbol;
+    return CURRENCY_SYMBOLS[this.getCurrencyCode()] || 'Rs.';
+  },
 
-        // Add animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(400px); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-        `;
-        if (!document.querySelector('style[data-notifications]')) {
-            style.setAttribute('data-notifications', 'true');
-            document.head.appendChild(style);
-        }
+  formatCurrency(amount, symbol = null) {
+    const n = parseFloat(amount) || 0;
+    const sym = symbol || this.getCurrencySymbol();
+    const code = this.getCurrencyCode();
+    const locale = code === 'NPR' || code === 'INR' ? 'en-IN' : 'en-US';
+    const hasDecimals = Math.abs(n % 1) >= 0.005;
+    return `${sym}${n.toLocaleString(locale, {
+      minimumFractionDigits: hasDecimals ? 2 : 0,
+      maximumFractionDigits: 2,
+    })}`;
+  },
 
-        document.body.appendChild(el);
-        this.notifications.push(el);
+  formatCompactCurrency(amount, symbol = null) {
+    const n = parseFloat(amount) || 0;
+    const sym = symbol || this.getCurrencySymbol();
+    if (Math.abs(n) >= 1_000_000) return `${sym}${(n / 1_000_000).toFixed(1)}M`;
+    if (Math.abs(n) >= 1_000) return `${sym}${(n / 1_000).toFixed(0)}k`;
+    return `${sym}${Math.round(n)}`;
+  },
 
-        // Remove from array when closed
-        el.addEventListener('close.bs.alert', () => {
-            const index = this.notifications.indexOf(el);
-            if (index > -1) this.notifications.splice(index, 1);
-        });
+  formatDate(str, opts = { year: 'numeric', month: 'short', day: 'numeric' }) {
+    if (!str) return '—';
+    const d = new Date(str + (str.length === 10 ? 'T00:00:00' : ''));
+    return isNaN(d) ? str : d.toLocaleDateString('en-US', opts);
+  },
 
-        if (duration) {
-            setTimeout(() => {
-                if (el.parentElement) {
-                    el.classList.remove('show');
-                    setTimeout(() => el.remove(), 150);
-                }
-            }, duration);
-        }
+  relativeDate(str) {
+    if (!str) return '—';
+    const d    = new Date(str + 'T00:00:00');
+    const days = Math.floor((Date.now() - d.getTime()) / 86400000);
+    if (days === 0) return 'Today';
+    if (days === 1) return 'Yesterday';
+    if (days < 7)  return `${days}d ago`;
+    return this.formatDate(str, { month: 'short', day: 'numeric' });
+  },
+
+  escapeHtml(s) {
+    if (!s) return '';
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  },
+
+  debounce(fn, ms = 350) {
+    let t;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+  },
+
+  downloadFile(content, name, type = 'text/plain') {
+    const blob = new Blob([content], { type });
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), { href: url, download: name });
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+  },
+};
+
+/* ──────────────── LOADER ──────────────── */
+const Loader = {
+  showBtn(btn, loading = true) {
+    if (!btn) return;
+    if (loading) {
+      btn.disabled  = true;
+      btn._orig     = btn.innerHTML;
+      btn.innerHTML = `<span class="spinner-sm"></span> Loading…`;
+    } else {
+      btn.disabled  = false;
+      btn.innerHTML = btn._orig || 'Submit';
     }
+  },
+};
 
-    static success(m) { this.show(m, 'success'); }
-    static error(m) { this.show(m, 'danger', 7000); }
-    static warning(m) { this.show(m, 'warning', 6000); }
-    static info(m) { this.show(m, 'info'); }
-}
-
-class LoadingManager {
-    static showButton(btn, loading = true) {
-        if (!btn) return;
-        
-        if (loading) {
-            btn.disabled = true;
-            if (!btn.dataset.text) {
-                btn.dataset.text = btn.innerHTML;
-            }
-            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Processing...`;
-        } else {
-            btn.disabled = false;
-            btn.innerHTML = btn.dataset.text || 'Submit';
-        }
-    }
-
-    static show(containerId, message = 'Loading...') {
-        const container = document.getElementById(containerId);
-        if (container) {
-            container.innerHTML = `
-                <div class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">${message}</span>
-                    </div>
-                    <p class="mt-2 text-muted">${message}</p>
-                </div>
-            `;
-        }
-    }
-
-    static hide(containerId) {
-        const container = document.getElementById(containerId);
-        if (container) {
-            container.innerHTML = '';
-        }
-    }
-}
-
-class ErrorHandler {
-    static handle(error, context = '') {
-        console.error(`Error [${context}]:`, error);
-        
-        let message = 'An unexpected error occurred';
-        
-        if (error.message) {
-            message = error.message;
-        }
-
-        // Don't show notification for session expired (handled by redirect)
-        if (message !== 'Session expired') {
-            NotificationManager.error(message);
-        }
-
-        // Log to external service in production (example)
-        if (window.location.hostname !== 'localhost') {
-            // this.logToService(error, context);
-        }
-    }
-
-    static logToService(error, context) {
-        // Example: Send to error tracking service
-        // fetch('/api/log-error', {
-        //     method: 'POST',
-        //     body: JSON.stringify({ error: error.message, context })
-        // });
-    }
-}
-
-class Utils {
-    static formatCurrency(amount, symbol = 'Rs.') {
-        const num = parseFloat(amount) || 0;
-        return `${symbol}${num.toLocaleString('en-NP', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 2
-        })}`;
-    }
-
-    static formatDate(dateString, format = 'short') {
-        if (!dateString) return 'N/A';
-        
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return 'Invalid Date';
-
-        const options = format === 'full' 
-            ? { year: 'numeric', month: 'short', day: 'numeric' }
-            : { month: 'short', day: 'numeric' };
-
-        return date.toLocaleDateString('en-US', options);
-    }
-
-    static escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    static downloadFile(content, filename, mimeType) {
-        const blob = new Blob([content], { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        
-        // Cleanup
-        setTimeout(() => {
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        }, 100);
-    }
-
-    static debounce(func, wait = 300) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-
-    static throttle(func, limit = 300) {
-        let inThrottle;
-        return function(...args) {
-            if (!inThrottle) {
-                func.apply(this, args);
-                inThrottle = true;
-                setTimeout(() => inThrottle = false, limit);
-            }
-        };
-    }
-
-    static formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-    }
-
-    static copyToClipboard(text) {
-        if (navigator.clipboard) {
-            return navigator.clipboard.writeText(text);
-        } else {
-            // Fallback for older browsers
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            textArea.style.position = 'fixed';
-            textArea.style.left = '-999999px';
-            document.body.appendChild(textArea);
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                return Promise.resolve();
-            } catch (err) {
-                document.body.removeChild(textArea);
-                return Promise.reject(err);
-            }
-        }
-    }
-}
-
-// ================= INIT =================
-const auth = new AuthManager();
-const cache = new CacheManager();
-const api = new APIManager(auth, cache);
-
-// ================= CATEGORY LOADER =================
+/* ──────────────── CATEGORY LOADER ──────────────── */
 const CategoryLoader = {
-    _cache: null,
+  _cache: null,
 
-    async load(selectIds = [], defaultLabel = 'Select Category') {
-        try {
-            if (!this._cache) {
-                const data = await api.get('/categories/');
-                this._cache = data.results || data;
-            }
-            selectIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                el.innerHTML = `<option value="">${defaultLabel}</option>` +
-                    this._cache.map(c =>
-                        `<option value="${c.id}">${Utils.escapeHtml(c.name)}</option>`
-                    ).join('');
-            });
-            return this._cache;
-        } catch (err) {
-            ErrorHandler.handle(err, 'Load Categories');
-            return [];
-        }
-    },
-
-    clearCache() { this._cache = null; }
-};
-
-window.AppCore = {
-    auth,
-    cache,
-    api,
-    ValidationManager,
-    NotificationManager,
-    LoadingManager,
-    ErrorHandler,
-    Utils,
-    CONFIG,
-    CategoryLoader
-};
-
-// ================= PAGE GUARD =================
-window.requireAuth = async function () {
-    if (!auth.isAuthenticated()) {
-        window.location.href = 'login.html';
-        return;
+  async getAll() {
+    if (!this._cache) {
+      const data  = await api.get('/categories/');
+      this._cache = Array.isArray(data) ? data : (data.results || []);
     }
+    return this._cache;
+  },
 
-    const valid = await auth.checkAuth();
-    if (!valid) {
-        window.location.href = 'login.html';
-    }
+  async populateSelect(selectEl, placeholder = 'All Categories') {
+    if (!selectEl) return;
+    const categories = await this.getAll();
+    const current    = selectEl.value;
+    selectEl.innerHTML =
+      `<option value="">${placeholder}</option>` +
+      categories.map(c =>
+        `<option value="${c.id}" ${c.id == current ? 'selected' : ''}>${Utils.escapeHtml(c.name)}</option>`
+      ).join('');
+  },
+
+  invalidate() { this._cache = null; },
 };
 
-// ================= PERFORMANCE MONITORING =================
-if (window.performance && window.performance.mark) {
-    window.performance.mark('appcore-loaded');
-}
+/* ──────────────── INIT ──────────────── */
+const auth  = new AuthManager();
+const cache = new CacheManager();
+const api   = new APIManager(auth, cache);
 
-// ================= CLEANUP =================
-window.addEventListener('beforeunload', () => {
-    cache.clearAll();
+window.AppCore = { auth, cache, api, Toast, Utils, Loader, CategoryLoader, ThemeManager, CONFIG };
+
+/* ── requireAuth — call inside DOMContentLoaded on every protected page ── */
+window.requireAuth = async () => {
+  if (!auth.isAuthenticated()) {
+    window.location.href = loginPath();
+    return false;
+  }
+  const ok = await auth.verify();
+  if (!ok) {
+    window.location.href = loginPath();
+    return false;
+  }
+  return true;
+};
+
+/* ──────────────── SIDEBAR ACTIVE STATE ──────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  const page = window.location.pathname.split('/').pop();
+  document.querySelectorAll('.nav-link').forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === page);
+  });
+
+  const sidebar = document.querySelector('.sidebar');
+  const topbarLeft = document.querySelector('.topbar__left');
+  if (!sidebar || !topbarLeft) return;
+
+  if (!sidebar.id) sidebar.id = 'emsSidebar';
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'mobile-nav-toggle btn btn--ghost btn--icon btn--sm';
+  toggle.setAttribute('aria-label', 'Open navigation');
+  toggle.setAttribute('aria-controls', sidebar.id);
+  toggle.setAttribute('aria-expanded', 'false');
+  toggle.innerHTML = '<i class="fa-solid fa-bars" aria-hidden="true"></i>';
+  topbarLeft.prepend(toggle);
+
+  const backdrop = document.createElement('button');
+  backdrop.type = 'button';
+  backdrop.className = 'mobile-nav-backdrop';
+  backdrop.setAttribute('aria-label', 'Close navigation');
+  document.body.appendChild(backdrop);
+
+  const setOpen = open => {
+    sidebar.classList.toggle('open', open);
+    backdrop.classList.toggle('open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+    toggle.innerHTML = `<i class="fa-solid fa-${open ? 'xmark' : 'bars'}" aria-hidden="true"></i>`;
+  };
+
+  toggle.addEventListener('click', () => setOpen(!sidebar.classList.contains('open')));
+  backdrop.addEventListener('click', () => setOpen(false));
+  sidebar.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', () => setOpen(false));
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && sidebar.classList.contains('open')) setOpen(false);
+  });
 });
 
-// ================= READY =================
-console.log('✅ AppCore initialized successfully');
-console.log('Cache stats:', cache.getStats());
+console.log('✅ EMS Core ready | API →', CONFIG.API_URL);

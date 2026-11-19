@@ -1,487 +1,400 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings - Expense Management System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            background: #F9FAFB;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: 250px;
-            background: white;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            padding: 20px 0;
-            z-index: 1000;
-        }
-        .sidebar-logo {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid #E5E7EB;
-            margin-bottom: 20px;
-        }
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        .sidebar-menu li a {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            color: #6B7280;
-            text-decoration: none;
-        }
-        .sidebar-menu li a:hover,
-        .sidebar-menu li a.active {
-            background: #EFF6FF;
-            color: #3B82F6;
-            border-right: 3px solid #3B82F6;
-        }
-        .sidebar-menu li a i {
-            margin-right: 12px;
-            width: 20px;
-        }
-        .main-content {
-            margin-left: 250px;
-            padding: 20px;
-        }
-        .top-bar {
-            background: white;
-            padding: 15px 30px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .settings-card {
-            background: white;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }
-        .settings-section {
-            padding: 20px 0;
-            border-bottom: 1px solid #E5E7EB;
-        }
-        .settings-section:last-child {
-            border-bottom: none;
-        }
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 40px;
-            font-weight: bold;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — EMS</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="assets/css/main.css">
+<style>
+.settings-layout { display:grid; grid-template-columns:200px 1fr; gap:24px; align-items:start; }
+.settings-nav { display:flex; flex-direction:column; gap:3px; position:sticky; top:76px; }
+.snav-btn { display:flex; align-items:center; gap:9px; padding:9px 12px; border-radius:var(--radius); border:none; background:transparent; color:var(--text-secondary); font-size:14px; font-weight:500; cursor:pointer; text-align:left; font-family:var(--font-sans); transition:all 0.15s; }
+.snav-btn:hover { background:var(--bg-hover); color:var(--text-primary); }
+.snav-btn.active { background:var(--accent-light); color:var(--accent); font-weight:600; }
+.settings-panel { display:none; flex-direction:column; gap:20px; }
+.settings-panel.active { display:flex; }
+.s-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; }
+.s-card__title { font-size:16px; font-weight:600; margin-bottom:4px; }
+.s-card__sub { font-size:13px; color:var(--text-muted); margin-bottom:20px; }
+.toggle-row { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 0; border-bottom:1px solid var(--border); }
+.toggle-row:last-child { border-bottom:none; padding-bottom:0; }
+.toggle-row:first-child { padding-top:0; }
+.toggle-info__title { font-size:14px; font-weight:500; }
+.toggle-info__sub { font-size:12px; color:var(--text-muted); }
+.toggle { position:relative; width:44px; height:24px; flex-shrink:0; }
+.toggle input { opacity:0; width:0; height:0; }
+.toggle-slider { position:absolute; inset:0; background:var(--border-strong); border-radius:99px; cursor:pointer; transition:0.25s; }
+.toggle-slider::before { content:''; position:absolute; height:18px; width:18px; left:3px; bottom:3px; background:white; border-radius:50%; transition:0.25s; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
+.toggle input:checked + .toggle-slider { background:var(--accent); }
+.toggle input:checked + .toggle-slider::before { transform:translateX(20px); }
+.theme-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.theme-opt { border:1.5px solid var(--border); border-radius:var(--radius); padding:14px; text-align:center; cursor:pointer; transition:all 0.15s; font-size:13px; font-weight:500; }
+.theme-opt:hover { border-color:var(--accent); }
+.theme-opt.active { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
+.theme-opt i { display:block; font-size:20px; margin-bottom:6px; }
+.danger-card { border-color:rgba(244,63,94,0.25); }
+@media (max-width:768px) { .settings-layout { grid-template-columns:1fr; } }
+</style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-logo">
-            <h5 class="mb-0"><i class="fas fa-wallet text-primary"></i> EMS</h5>
+<div class="layout">
+  <aside class="sidebar">
+    <a href="dashboard.html" class="sidebar__brand">
+      <div class="sidebar__brand-icon">💰</div>
+      <div>
+        <div class="sidebar__brand-name">EMS</div>
+        <div class="sidebar__brand-sub">Finance Manager</div>
+      </div>
+    </a>
+    <nav class="sidebar__nav">
+      <div class="nav-section">
+        <div class="nav-section-label">Main</div>
+        <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
+        <a href="expenses.html" class="nav-link"><i class="fa-solid fa-receipt"></i> Expenses</a>
+        <a href="budget.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Budgets</a>
+        <a href="savings.html" class="nav-link"><i class="fa-solid fa-piggy-bank"></i> Savings</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Insights</div>
+        <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+        <a href="reports.html" class="nav-link"><i class="fa-solid fa-file-arrow-down"></i> Reports</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Account</div>
+        <a href="settings.html" class="nav-link active"><i class="fa-solid fa-gear"></i> Settings</a>
+      </div>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="user-chip">
+        <div class="user-avatar" id="sidebarAvatar">?</div>
+        <div>
+          <div class="user-name" id="sidebarName">Loading…</div>
+          <div class="user-role">Personal Account</div>
         </div>
-        <ul class="sidebar-menu">
-            <li><a href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
-            <li><a href="expenses.html"><i class="fas fa-receipt"></i> Expenses</a></li>
-            <li><a href="budget.html"><i class="fas fa-chart-pie"></i> Budgets</a></li>
-            <li><a href="analytics.html"><i class="fas fa-chart-line"></i> Analytics</a></li>
-            <li><a href="reports.html"><i class="fas fa-file-download"></i> Reports</a></li>
-            <li><a href="settings.html" class="active"><i class="fas fa-cog"></i> Settings</a></li>
-        </ul>
+      </div>
     </div>
+  </aside>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Top Bar -->
-        <div class="top-bar d-flex justify-content-between align-items-center">
-            <div>
-                <h4 class="mb-0">Settings</h4>
-                <small class="text-muted">Manage your account and preferences</small>
-            </div>
-            <button class="btn btn-outline-danger" onclick="AppCore.auth.logout()">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar__left"><div class="topbar__title">Settings</div></div>
+      <div class="topbar__right">
+        <button class="btn btn--ghost btn--sm" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </div>
+    </header>
+
+    <div class="page">
+      <div class="settings-layout">
+        <div class="settings-nav">
+          <button class="snav-btn active" data-panel="profile"><i class="fa-solid fa-user"></i> Profile</button>
+          <button class="snav-btn" data-panel="preferences"><i class="fa-solid fa-sliders"></i> Preferences</button>
+          <button class="snav-btn" data-panel="security"><i class="fa-solid fa-lock"></i> Security</button>
+          <button class="snav-btn" data-panel="data"><i class="fa-solid fa-database"></i> Data &amp; Account</button>
         </div>
 
-        <div class="row">
-            <div class="col-lg-4">
-                <!-- Profile Card -->
-                <div class="settings-card text-center">
-                    <div class="profile-avatar mx-auto mb-3" id="profileAvatar">?</div>
-                    <h5 id="profileName">Loading...</h5>
-                    <p class="text-muted small" id="profileEmail">loading@example.com</p>
-                    <button class="btn btn-outline-primary btn-sm" disabled>
-                        <i class="fas fa-camera"></i> Change Photo
-                    </button>
+        <div>
+          <!-- Profile -->
+          <div class="settings-panel active" id="panel-profile">
+            <div class="s-card">
+              <div class="s-card__title">Personal Information</div>
+              <div class="s-card__sub">Update your name and contact details</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+                <div class="form-group">
+                  <label class="form-label">First Name</label>
+                  <input class="form-control" id="pFirst" placeholder="First name">
                 </div>
+                <div class="form-group">
+                  <label class="form-label">Last Name</label>
+                  <input class="form-control" id="pLast" placeholder="Last name">
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:14px">
+                <label class="form-label">Username</label>
+                <input class="form-control" id="pUsername" disabled style="opacity:0.6;cursor:not-allowed">
+                <span class="form-hint">Username cannot be changed</span>
+              </div>
+              <div class="form-group" style="margin-bottom:20px">
+                <label class="form-label">Email Address</label>
+                <input class="form-control" id="pEmail" type="email">
+              </div>
+              <button class="btn btn--primary" id="saveProfileBtn"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+            </div>
+          </div>
 
-                <!-- Quick Stats -->
-                <div class="settings-card">
-                    <h6 class="mb-3">Account Summary</h6>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Member Since</span>
-                        <strong id="memberSince">-</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Total Expenses</span>
-                        <strong id="totalExpenses">0</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="text-muted">Budgets Set</span>
-                        <strong id="totalBudgets">0</strong>
-                    </div>
+          <!-- Preferences -->
+          <div class="settings-panel" id="panel-preferences">
+            <div class="s-card">
+              <div class="s-card__title">Currency &amp; Display</div>
+              <div class="s-card__sub">Customize how figures and themes appear</div>
+              <div class="form-group" style="margin-bottom:18px">
+                <label class="form-label">Currency</label>
+                <select class="form-control" id="prefCurrency" style="max-width:260px">
+                  <option value="NPR">NPR — Nepalese Rupee (Rs.)</option>
+                  <option value="USD">USD — US Dollar ($)</option>
+                  <option value="EUR">EUR — Euro (€)</option>
+                  <option value="INR">INR — Indian Rupee (₹)</option>
+                  <option value="GBP">GBP — British Pound (£)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Theme</label>
+                <div class="theme-grid" style="max-width:360px">
+                  <div class="theme-opt active" data-theme="light"><i class="fa-solid fa-sun"></i> Light</div>
+                  <div class="theme-opt" data-theme="dark"><i class="fa-solid fa-moon"></i> Dark</div>
+                  <div class="theme-opt" data-theme="system"><i class="fa-solid fa-desktop"></i> System</div>
                 </div>
+              </div>
             </div>
 
-            <div class="col-lg-8">
-                <!-- Profile Settings -->
-                <div class="settings-card">
-                    <h5 class="mb-4"><i class="fas fa-user text-primary"></i> Profile Information</h5>
-                    <form id="profileForm">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstName" placeholder="First Name">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="lastName" placeholder="Last Name">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input type="text" class="form-control" id="username" disabled>
-                            <small class="text-muted">Username cannot be changed</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email" placeholder="email@example.com">
-                        </div>
-                        <button type="submit" class="btn btn-primary" id="saveProfileBtn">
-                            <i class="fas fa-save"></i> Save Changes
-                        </button>
-                    </form>
+            <div class="s-card">
+              <div class="s-card__title">Notifications</div>
+              <div class="s-card__sub">Control alerts and reminders</div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-info__title">Budget Alerts</div>
+                  <div class="toggle-info__sub">Warn when spending approaches your budget limit</div>
                 </div>
-
-                <!-- Password Change -->
-                <div class="settings-card">
-                    <h5 class="mb-4"><i class="fas fa-lock text-primary"></i> Change Password</h5>
-                    <form id="passwordForm">
-                        <div class="mb-3">
-                            <label class="form-label">Current Password</label>
-                            <input type="password" class="form-control" id="currentPassword" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">New Password</label>
-                            <input type="password" class="form-control" id="newPassword" required minlength="6">
-                            <small class="text-muted">Minimum 6 characters</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Confirm New Password</label>
-                            <input type="password" class="form-control" id="confirmPassword" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary" id="changePasswordBtn">
-                            <i class="fas fa-key"></i> Update Password
-                        </button>
-                    </form>
+                <label class="toggle"><input type="checkbox" id="prefBudgetAlerts" checked><span class="toggle-slider"></span></label>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-info">
+                  <div class="toggle-info__title">App Notifications</div>
+                  <div class="toggle-info__sub">Enable in-app notifications</div>
                 </div>
-
-                <!-- Preferences -->
-                <div class="settings-card">
-                    <h5 class="mb-4"><i class="fas fa-palette text-primary"></i> Preferences</h5>
-                    
-                    <div class="settings-section">
-                        <h6>Currency</h6>
-                        <select class="form-select" id="currencySelect">
-                            <option value="NPR">NPR - Nepalese Rupee (₹)</option>
-                            <option value="USD">USD - US Dollar ($)</option>
-                            <option value="EUR">EUR - Euro (€)</option>
-                        </select>
-                    </div>
-
-                    <div class="settings-section">
-                        <h6>Theme</h6>
-                        <div class="btn-group" role="group">
-                            <input type="radio" class="btn-check" name="theme" id="light" value="light" checked>
-                            <label class="btn btn-outline-primary" for="light">
-                                <i class="fas fa-sun"></i> Light
-                            </label>
-                            <input type="radio" class="btn-check" name="theme" id="dark" value="dark">
-                            <label class="btn btn-outline-primary" for="dark">
-                                <i class="fas fa-moon"></i> Dark
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="settings-section">
-                        <h6>Notifications</h6>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="enableNotifications" checked>
-                            <label class="form-check-label" for="enableNotifications">
-                                Enable Notifications
-                            </label>
-                        </div>
-                        <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="budgetAlerts" checked>
-                            <label class="form-check-label" for="budgetAlerts">
-                                Budget Alerts
-                            </label>
-                        </div>
-                    </div>
-
-                    <button class="btn btn-primary mt-3" onclick="SettingsApp.savePreferences()">
-                        <i class="fas fa-save"></i> Save Preferences
-                    </button>
-                </div>
-
-                <!-- Danger Zone -->
-                <div class="settings-card border-danger">
-                    <h5 class="mb-4 text-danger"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h5>
-                    <p class="text-muted">Once you delete your account, there is no going back. Please be certain.</p>
-                    <button class="btn btn-danger" onclick="SettingsApp.confirmDelete()">
-                        <i class="fas fa-trash"></i> Delete Account
-                    </button>
-                </div>
+                <label class="toggle"><input type="checkbox" id="prefNotif" checked><span class="toggle-slider"></span></label>
+              </div>
+              <div style="margin-top:18px">
+                <button class="btn btn--primary" id="savePrefBtn"><i class="fa-solid fa-floppy-disk"></i> Save Preferences</button>
+              </div>
             </div>
+          </div>
+
+          <!-- Security -->
+          <div class="settings-panel" id="panel-security">
+            <div class="s-card">
+              <div class="s-card__title">Change Password</div>
+              <div class="s-card__sub">Use a strong password you don't use elsewhere</div>
+              <div style="max-width:380px;display:flex;flex-direction:column;gap:14px">
+                <div class="form-group">
+                  <label class="form-label">Current Password</label>
+                  <input class="form-control" type="password" id="curPw" autocomplete="current-password">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">New Password</label>
+                  <input class="form-control" type="password" id="newPw" autocomplete="new-password" placeholder="At least 8 characters">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Confirm New Password</label>
+                  <input class="form-control" type="password" id="confPw" autocomplete="new-password">
+                </div>
+                <button class="btn btn--primary" id="changePwBtn" style="width:fit-content"><i class="fa-solid fa-key"></i> Update Password</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data & Account -->
+          <div class="settings-panel" id="panel-data">
+            <div class="s-card">
+              <div class="s-card__title">Export Your Data</div>
+              <div class="s-card__sub">Download a complete JSON backup of all your expenses, budgets, tags, and savings goals</div>
+              <button class="btn btn--ghost" id="backupBtn"><i class="fa-solid fa-download"></i> Download Full Backup (JSON)</button>
+            </div>
+            <div class="s-card danger-card">
+              <div class="s-card__title" style="color:var(--rose-600)">Danger Zone</div>
+              <div class="s-card__sub">Permanently delete your account and all associated financial records</div>
+              <button class="btn btn--danger" id="deleteAccountBtn"><i class="fa-solid fa-trash-can"></i> Delete Account</button>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="core.js"></script>
-    <script>
-        const SettingsApp = (function() {
-            const { api, auth, NotificationManager, LoadingManager, ErrorHandler, Utils } = window.AppCore;
-            
-            let currentUser = null;
-            let userPreferences = null;
+<!-- Confirm Account Deletion Modal -->
+<div class="modal-overlay" id="deleteAcctModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal__header">
+      <h3 class="modal__title" style="color:var(--danger)">Delete Account</h3>
+      <button class="modal__close" id="closeDeleteModal">✕</button>
+    </div>
+    <div class="modal__body">
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">
+        This will permanently erase your profile, expenses, budgets, tags, and savings goals. Enter your password to confirm.
+      </p>
+      <div class="form-group">
+        <label class="form-label form-label--required">Password</label>
+        <input class="form-control" type="password" id="deleteAcctPw" placeholder="Enter your password">
+        <span class="form-error" id="deleteAcctErr"></span>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn--ghost" id="cancelDeleteModal">Cancel</button>
+      <button class="btn btn--danger" id="confirmDeleteAcctBtn"><i class="fa-solid fa-trash-can"></i> Permanently Delete</button>
+    </div>
+  </div>
+</div>
 
-            // Initialize
-            async function init() {
-                try {
-                    await window.requireAuth();
-                    
-                    // Load user data
-                    currentUser = auth.getUser();
-                    if (currentUser) {
-                        loadUserProfile();
-                    }
-                    
-                    // Load stats and preferences
-                    await Promise.all([
-                        loadStats(),
-                        loadPreferences()
-                    ]);
-                    
-                    // Setup form handlers
-                    setupFormHandlers();
-                    
-                } catch (error) {
-                    ErrorHandler.handle(error, 'Settings Initialization');
-                    window.location.href = 'login.html';
-                }
-            }
+<script src="core.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const { api, auth, Toast, Utils, Loader, ThemeManager } = window.AppCore;
+  const ok = await window.requireAuth();
+  if (!ok) return;
 
-            // Load user profile
-            function loadUserProfile() {
-                // Get first letter of username for avatar
-                const firstLetter = (currentUser.username || currentUser.name || '?')[0].toUpperCase();
-                document.getElementById('profileAvatar').textContent = firstLetter;
-                
-                // Display user info
-                document.getElementById('profileName').textContent = 
-                    currentUser.name || currentUser.username || 'User';
-                document.getElementById('profileEmail').textContent = 
-                    currentUser.email || 'No email set';
-                
-                // Fill form fields
-                document.getElementById('firstName').value = currentUser.first_name || '';
-                document.getElementById('lastName').value = currentUser.last_name || '';
-                document.getElementById('username').value = currentUser.username || '';
-                document.getElementById('email').value = currentUser.email || '';
-                
-                // Set member since date (from user id creation - approximate)
-                const memberDate = new Date();
-                memberDate.setMonth(memberDate.getMonth() - 1); // Placeholder
-                document.getElementById('memberSince').textContent = 
-                    memberDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-            }
+  const u = auth.user;
+  if (u) {
+    document.getElementById('sidebarName').textContent = u.name || u.username;
+    document.getElementById('sidebarAvatar').textContent = (u.first_name?.[0] || u.username?.[0] || '?').toUpperCase();
+    document.getElementById('pFirst').value = u.first_name || '';
+    document.getElementById('pLast').value = u.last_name || '';
+    document.getElementById('pUsername').value = u.username || '';
+    document.getElementById('pEmail').value = u.email || '';
+  }
 
-            // Load statistics
-            async function loadStats() {
-                try {
-                    const [expensesData, budgetsData] = await Promise.all([
-                        api.get('/expenses/'),
-                        api.get('/budgets/')
-                    ]);
-                    
-                    const expenses = expensesData.results || expensesData;
-                    const budgets = budgetsData.results || budgetsData;
+  let selectedTheme = u?.theme || 'light';
+  let prefId = null;
 
-                    document.getElementById('totalExpenses').textContent = expenses.length;
-                    document.getElementById('totalBudgets').textContent = budgets.length;
-                } catch (error) {
-                    console.error('Error loading stats:', error);
-                    document.getElementById('totalExpenses').textContent = '0';
-                    document.getElementById('totalBudgets').textContent = '0';
-                }
-            }
+  function applyThemeSelection(theme) {
+    selectedTheme = theme;
+    ThemeManager.apply(theme);
+    document.querySelectorAll('.theme-opt').forEach(o => o.classList.toggle('active', o.dataset.theme === theme));
+  }
 
-            // Load preferences
-            async function loadPreferences() {
-                try {
-                    const prefs = await api.get('/preferences/');
-                    userPreferences = prefs;
-                    
-                    // Apply preferences to form
-                    if (prefs.currency) {
-                        document.getElementById('currencySelect').value = prefs.currency;
-                    }
-                    if (prefs.theme) {
-                        document.getElementById(prefs.theme).checked = true;
-                    }
-                    if (prefs.enable_notifications !== undefined) {
-                        document.getElementById('enableNotifications').checked = prefs.enable_notifications;
-                    }
-                    if (prefs.enable_budget_alerts !== undefined) {
-                        document.getElementById('budgetAlerts').checked = prefs.enable_budget_alerts;
-                    }
-                } catch (error) {
-                    console.warn('Could not load preferences:', error);
-                }
-            }
+  document.querySelectorAll('.snav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.snav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(`panel-${btn.dataset.panel}`).classList.add('active');
+    });
+  });
 
-            // Setup form handlers
-            function setupFormHandlers() {
-                // Profile form
-                document.getElementById('profileForm').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    await saveProfile();
-                });
+  document.querySelectorAll('.theme-opt').forEach(opt => {
+    opt.addEventListener('click', () => applyThemeSelection(opt.dataset.theme));
+  });
 
-                // Password form
-                document.getElementById('passwordForm').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    await changePassword();
-                });
-            }
+  async function loadPrefs() {
+    try {
+      const pref = await api.get('/preferences/', false);
+      if (pref && pref.id) {
+        prefId = pref.id;
+        document.getElementById('prefCurrency').value = pref.currency || 'NPR';
+        document.getElementById('prefBudgetAlerts').checked = pref.enable_budget_alerts !== false;
+        document.getElementById('prefNotif').checked = pref.enable_notifications !== false;
+        applyThemeSelection(pref.theme || 'light');
+      }
+    } catch {}
+  }
 
-            // Save profile
-            async function saveProfile() {
-                const btn = document.getElementById('saveProfileBtn');
-                try {
-                    LoadingManager.showButton(btn, true);
-                    
-                    const data = {
-                        first_name: document.getElementById('firstName').value.trim(),
-                        last_name: document.getElementById('lastName').value.trim(),
-                        email: document.getElementById('email').value.trim()
-                    };
-                    
-                    // Update user via API (you'll need to create this endpoint)
-                    await api.put(`/users/${currentUser.id}/`, data);
-                    
-                    // Update local user data
-                    currentUser.first_name = data.first_name;
-                    currentUser.last_name = data.last_name;
-                    currentUser.email = data.email;
-                    currentUser.name = `${data.first_name} ${data.last_name}`.trim() || currentUser.username;
-                    
-                    auth.setUser(currentUser, true);
-                    loadUserProfile();
-                    
-                    NotificationManager.success('Profile updated successfully!');
-                } catch (error) {
-                    ErrorHandler.handle(error, 'Save Profile');
-                } finally {
-                    LoadingManager.showButton(btn, false);
-                }
-            }
+  document.getElementById('saveProfileBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('saveProfileBtn');
+    const first_name = document.getElementById('pFirst').value.trim();
+    const last_name = document.getElementById('pLast').value.trim();
+    const email = document.getElementById('pEmail').value.trim();
+    if (!email) { Toast.error('Email is required.'); return; }
+    Loader.showBtn(btn);
+    try {
+      const updated = await api.patch(`/users/${u.id}/`, { first_name, last_name, email });
+      auth.updateStoredUser(updated);
+      document.getElementById('sidebarName').textContent = updated.name || updated.username;
+      Toast.success('Profile updated!');
+    } catch (e) { Toast.error(e.message); }
+    finally { Loader.showBtn(btn, false); }
+  });
 
-            // Change password
-            async function changePassword() {
-                const btn = document.getElementById('changePasswordBtn');
-                const currentPassword = document.getElementById('currentPassword').value;
-                const newPassword = document.getElementById('newPassword').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
-                
-                // Validation
-                if (newPassword !== confirmPassword) {
-                    NotificationManager.error('New passwords do not match!');
-                    return;
-                }
-                
-                if (newPassword.length < 6) {
-                    NotificationManager.error('Password must be at least 6 characters!');
-                    return;
-                }
-                
-                try {
-                    LoadingManager.showButton(btn, true);
-                    
-                    await api.post('/auth/change-password/', {
-                        current_password: currentPassword,
-                        new_password: newPassword
-                    });
-                    
-                    NotificationManager.success('Password changed successfully!');
-                    document.getElementById('passwordForm').reset();
-                } catch (error) {
-                    ErrorHandler.handle(error, 'Change Password');
-                } finally {
-                    LoadingManager.showButton(btn, false);
-                }
-            }
+  document.getElementById('savePrefBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('savePrefBtn');
+    const currency = document.getElementById('prefCurrency').value;
+    const payload = {
+      currency,
+      theme: selectedTheme,
+      enable_budget_alerts: document.getElementById('prefBudgetAlerts').checked,
+      enable_notifications: document.getElementById('prefNotif').checked,
+    };
+    Loader.showBtn(btn);
+    try {
+      const saved = prefId ? await api.put(`/preferences/${prefId}/`, payload) : await api.post('/preferences/', payload);
+      prefId = saved.id || prefId;
+      auth.updateStoredUser({
+        currency: saved.currency || currency,
+        currency_symbol: saved.currency_symbol,
+        theme: saved.theme || selectedTheme,
+      });
+      Toast.success('Preferences saved!');
+    } catch (e) { Toast.error(e.message); }
+    finally { Loader.showBtn(btn, false); }
+  });
 
-            // Save preferences
-            async function savePreferences() {
-                try {
-                    const prefs = {
-                        currency: document.getElementById('currencySelect').value,
-                        theme: document.querySelector('input[name="theme"]:checked').value,
-                        enable_notifications: document.getElementById('enableNotifications').checked,
-                        enable_budget_alerts: document.getElementById('budgetAlerts').checked
-                    };
-                    
-                    await api.put('/preferences/', prefs);
-                    
-                    NotificationManager.success('Preferences saved successfully!');
-                } catch (error) {
-                    ErrorHandler.handle(error, 'Save Preferences');
-                }
-            }
+  document.getElementById('changePwBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('changePwBtn');
+    const current_password = document.getElementById('curPw').value;
+    const new_password = document.getElementById('newPw').value;
+    const confirm_password = document.getElementById('confPw').value;
+    if (!current_password || !new_password) { Toast.error('Fill in all password fields.'); return; }
+    if (new_password !== confirm_password) { Toast.error('New passwords do not match.'); return; }
+    if (new_password.length < 8) { Toast.error('Password must be at least 8 characters.'); return; }
+    Loader.showBtn(btn);
+    try {
+      const res = await api.post('/auth/change-password/', { current_password, new_password, confirm_password });
+      if (res.token) {
+        auth.setSession(res.token, auth.user, !!localStorage.getItem('ems_token'));
+      }
+      ['curPw', 'newPw', 'confPw'].forEach(id => document.getElementById(id).value = '');
+      Toast.success('Password updated!');
+    } catch (e) { Toast.error(e.message); }
+    finally { Loader.showBtn(btn, false); }
+  });
 
-            // Confirm delete account
-            function confirmDelete() {
-                if (confirm('⚠️ Are you absolutely sure? This action cannot be undone!')) {
-                    if (confirm('🗑️ This will permanently delete all your data. Continue?')) {
-                        NotificationManager.warning('Account deletion feature is not yet implemented. Contact support for account deletion.');
-                    }
-                }
-            }
+  document.getElementById('backupBtn').addEventListener('click', async () => {
+    try {
+      const [expenses, budgets, goals, tags] = await Promise.all([
+        api.getAll('/expenses/'),
+        api.getAll('/budgets/'),
+        api.getAll('/savings-goals/'),
+        api.get('/tags/', false),
+      ]);
+      const backup = { exported_at: new Date().toISOString(), user: u.username, expenses, budgets, savings_goals: goals, tags };
+      Utils.downloadFile(JSON.stringify(backup, null, 2), `ems_backup_${new Date().toISOString().split('T')[0]}.json`, 'application/json');
+      Toast.success('Backup downloaded!');
+    } catch (e) { Toast.error(e.message); }
+  });
 
-            return {
-                init,
-                savePreferences,
-                confirmDelete
-            };
-        })();
+  const delModal = document.getElementById('deleteAcctModal');
+  document.getElementById('deleteAccountBtn').addEventListener('click', () => {
+    document.getElementById('deleteAcctPw').value = '';
+    document.getElementById('deleteAcctErr').textContent = '';
+    delModal.classList.add('open');
+  });
+  document.getElementById('closeDeleteModal').addEventListener('click', () => delModal.classList.remove('open'));
+  document.getElementById('cancelDeleteModal').addEventListener('click', () => delModal.classList.remove('open'));
+  delModal.addEventListener('click', e => { if (e.target === delModal) delModal.classList.remove('open'); });
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', SettingsApp.init);
-    </script>
+  document.getElementById('confirmDeleteAcctBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('confirmDeleteAcctBtn');
+    const password = document.getElementById('deleteAcctPw').value;
+    if (!password) {
+      document.getElementById('deleteAcctErr').textContent = 'Password is required.';
+      return;
+    }
+    Loader.showBtn(btn);
+    try {
+      await api.delete(`/users/${u.id}/`, { password });
+      auth.clear();
+      window.location.href = 'register.html';
+    } catch (e) {
+      document.getElementById('deleteAcctErr').textContent = e.message;
+    } finally {
+      Loader.showBtn(btn, false);
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
+
+  loadPrefs();
+});
+</script>
 </body>
 </html>
