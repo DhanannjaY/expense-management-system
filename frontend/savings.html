@@ -1,360 +1,757 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Savings Goals — EMS</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="assets/css/main.css">
-<style>
-.goals-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:18px; }
-.goal-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; transition:all 0.2s; }
-.goal-card:hover { box-shadow:var(--shadow-md); }
-.goal-card--completed { border-color:rgba(16,185,129,0.35); }
-.goal-card__top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
-.goal-card__title { font-size:17px; font-weight:600; }
-.goal-card__status { font-size:11px; font-weight:600; padding:3px 9px; border-radius:var(--radius-full); text-transform:capitalize; flex-shrink:0; }
-.goal-card__status--active { background:var(--accent-light); color:var(--accent); }
-.goal-card__status--completed { background:var(--success-bg); color:var(--success); }
-.goal-card__status--paused { background:var(--ink-100); color:var(--ink-500); }
-.goal-card__amounts { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px; }
-.goal-card__saved { font-size:24px; font-weight:700; font-family:var(--font-mono); letter-spacing:-0.5px; color:var(--success); }
-.goal-card__target { font-size:13px; color:var(--text-muted); font-family:var(--font-mono); }
-.goal-card__bar { height:10px; background:var(--ink-100); border-radius:var(--radius-full); overflow:hidden; margin-bottom:10px; }
-.goal-card__fill { height:100%; background:linear-gradient(90deg,var(--accent),#10b981); border-radius:var(--radius-full); transition:width 0.7s ease; }
-.goal-card__meta { display:flex; align-items:center; justify-content:space-between; font-size:12px; color:var(--text-muted); margin-bottom:16px; }
-.goal-card__actions { display:flex; gap:8px; }
-.summary-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
-.sum-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:16px 20px; }
-.sum-card__label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); }
-.sum-card__val { font-size:22px; font-weight:700; font-family:var(--font-mono); margin-top:4px; }
-@media (max-width:640px) { .summary-row { grid-template-columns:1fr; } }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Savings Goals — Expense Management System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <style>
+    .savings-controls {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-xs);
+    }
+    .filter-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .filter-pill {
+      padding: 5px 13px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-base);
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .filter-pill:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+    .filter-pill.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+
+    .goal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px 22px;
+      box-shadow: var(--shadow-xs);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      position: relative;
+      overflow: hidden;
+      transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+    }
+    .goal-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: var(--goal-accent, var(--accent));
+    }
+    .goal-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-strong);
+    }
+    .goal-card__head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .goal-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .goal-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+    }
+    .goal-metrics__lbl {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .goal-metrics__val {
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .goal-card__footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+    .quick-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .chip-btn {
+      padding: 5px 11px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-base);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .chip-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+  </style>
 </head>
 <body>
-<div class="layout">
-  <aside class="sidebar">
-    <a href="dashboard.html" class="sidebar__brand">
-      <div class="sidebar__brand-icon">💰</div>
-      <div>
-        <div class="sidebar__brand-name">EMS</div>
-        <div class="sidebar__brand-sub">Finance Manager</div>
-      </div>
-    </a>
-    <nav class="sidebar__nav">
-      <div class="nav-section">
-        <div class="nav-section-label">Main</div>
-        <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
-        <a href="expenses.html" class="nav-link"><i class="fa-solid fa-receipt"></i> Expenses</a>
-        <a href="budget.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Budgets</a>
-        <a href="savings.html" class="nav-link active"><i class="fa-solid fa-piggy-bank"></i> Savings</a>
-      </div>
-      <div class="nav-section">
-        <div class="nav-section-label">Insights</div>
-        <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> Analytics</a>
-        <a href="reports.html" class="nav-link"><i class="fa-solid fa-file-arrow-down"></i> Reports</a>
-      </div>
-      <div class="nav-section">
-        <div class="nav-section-label">Account</div>
-        <a href="settings.html" class="nav-link"><i class="fa-solid fa-gear"></i> Settings</a>
-      </div>
-    </nav>
-    <div class="sidebar__footer">
-      <div class="user-chip">
-        <div class="user-avatar" id="sidebarAvatar">?</div>
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <a href="dashboard.html" class="sidebar__brand">
+        <div class="sidebar__brand-icon"><i class="fa-solid fa-wallet"></i></div>
         <div>
-          <div class="user-name" id="sidebarName">Loading…</div>
-          <div class="user-role">Personal Account</div>
+          <div class="sidebar__brand-name">EMS</div>
+          <div class="sidebar__brand-sub">Finance Manager</div>
+        </div>
+      </a>
+
+      <nav class="sidebar__nav">
+        <div class="nav-section">
+          <div class="nav-section-label">Overview</div>
+          <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></a>
+          <a href="expenses.html" class="nav-link"><i class="fa-solid fa-receipt"></i><span>Expenses</span></a>
+          <a href="budget.html" class="nav-link"><i class="fa-solid fa-bullseye"></i><span>Budgets</span></a>
+          <a href="savings.html" class="nav-link active"><i class="fa-solid fa-piggy-bank"></i><span>Savings Goals</span></a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Insights</div>
+          <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line"></i><span>Analytics &amp; AI</span></a>
+          <a href="reports.html" class="nav-link"><i class="fa-solid fa-file-export"></i><span>Reports</span></a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Account</div>
+          <a href="settings.html" class="nav-link"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+        </div>
+      </nav>
+
+      <div class="sidebar__footer">
+        <div class="user-chip" onclick="location.href='settings.html'">
+          <div class="user-avatar" id="sidebarAvatar">U</div>
+          <div style="min-width:0;flex:1;">
+            <div class="user-name truncate" id="sidebarUserName">User</div>
+            <div class="user-role truncate" id="sidebarUserEmail">Personal Account</div>
+          </div>
         </div>
       </div>
-    </div>
-  </aside>
+    </aside>
 
-  <div class="main">
-    <header class="topbar">
-      <div class="topbar__left"><div class="topbar__title">Savings Goals</div></div>
-      <div class="topbar__right">
-        <button class="btn btn--primary btn--sm" id="addGoalBtn"><i class="fa-solid fa-plus"></i> New Goal</button>
-        <button class="btn btn--ghost btn--sm" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i></button>
-      </div>
-    </header>
+    <!-- MAIN -->
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar__left">
+          <div>
+            <div class="topbar__title">Savings Goals</div>
+            <div class="topbar__sub">Build dedicated funds, track target dates, and log deposits</div>
+          </div>
+        </div>
+        <div class="topbar__right">
+          <button type="button" class="btn btn--primary btn--sm" id="newGoalBtn">
+            <i class="fa-solid fa-plus"></i><span>New Goal</span>
+          </button>
+          <button type="button" class="btn btn--ghost btn--icon btn--sm" id="logoutBtn" title="Sign out">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </header>
 
-    <div class="page">
-      <div class="summary-row">
-        <div class="sum-card"><div class="sum-card__label">Total Saved</div><div class="sum-card__val" id="sumSaved" style="color:var(--success)">—</div></div>
-        <div class="sum-card"><div class="sum-card__label">Total Target</div><div class="sum-card__val" id="sumTarget">—</div></div>
-        <div class="sum-card"><div class="sum-card__label">Goals Completed</div><div class="sum-card__val" id="sumDone" style="color:var(--accent)">—</div></div>
-      </div>
+      <main class="page">
+        <!-- SUMMARY KPIs (Consistent 3-Card Layout) -->
+        <section class="stats-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));">
+          <div class="stat-card">
+            <div class="kpi-icon-row">
+              <span class="stat-card__label">Total Saved</span>
+              <span class="kpi-badge-icon" style="background:var(--accent-light);color:var(--accent);">
+                <i class="fa-solid fa-piggy-bank"></i>
+              </span>
+            </div>
+            <div class="stat-card__value" id="savTotalSaved">—</div>
+            <div class="stat-card__delta stat-card__delta--neutral" id="savOverallMeta">0% of combined target</div>
+          </div>
 
-      <div id="goalsGrid" class="goals-grid">
-        <div class="empty-state" style="grid-column:1/-1;padding:60px 0"><div class="spinner"></div></div>
-      </div>
+          <div class="stat-card">
+            <div class="kpi-icon-row">
+              <span class="stat-card__label">Combined Target</span>
+              <span class="kpi-badge-icon" style="background:var(--info-bg);color:var(--sky-600);">
+                <i class="fa-solid fa-flag-checkered"></i>
+              </span>
+            </div>
+            <div class="stat-card__value" id="savTargetSum">—</div>
+            <div class="stat-card__delta stat-card__delta--neutral" id="savMilestones">0 / 0 completed</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="kpi-icon-row">
+              <span class="stat-card__label">Remaining Gap</span>
+              <span class="kpi-badge-icon" style="background:var(--success-bg);color:var(--emerald-600);">
+                <i class="fa-solid fa-coins"></i>
+              </span>
+            </div>
+            <div class="stat-card__value" id="savRemainingSum">—</div>
+            <div class="stat-card__delta stat-card__delta--neutral" id="savGapMeta">To reach all milestones</div>
+          </div>
+        </section>
+
+        <!-- FILTER & SORT TOOLBAR -->
+        <section class="savings-controls">
+          <div class="filter-pills" id="goalFilterTabs">
+            <button type="button" class="filter-pill active" data-filter="all">All Goals</button>
+            <button type="button" class="filter-pill" data-filter="active">In Progress</button>
+            <button type="button" class="filter-pill" data-filter="completed">Completed</button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label for="goalSortSelect" class="text-xs text-muted">Sort by:</label>
+            <select id="goalSortSelect" class="form-control" style="width:auto;padding:6px 12px;font-size:13px;">
+              <option value="progress_desc">Highest Progress</option>
+              <option value="deadline_asc">Closest Deadline</option>
+              <option value="target_desc">Largest Target</option>
+              <option value="newest">Recently Added</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- GOALS GRID -->
+        <section class="grid grid-3" id="goalsGrid">
+          <div class="skeleton-card"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+          <div class="skeleton-card"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+          <div class="skeleton-card"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+        </section>
+      </main>
     </div>
   </div>
-</div>
 
-<!-- Add/Edit Goal Modal -->
-<div class="modal-overlay" id="goalModal">
-  <div class="modal" style="max-width:440px">
-    <div class="modal__header">
-      <h3 class="modal__title" id="goalModalTitle">New Savings Goal</h3>
-      <button class="modal__close" id="closeGoalModal">✕</button>
-    </div>
-    <div class="modal__body">
-      <input type="hidden" id="editGoalId">
-      <div class="form-group">
-        <label class="form-label form-label--required">Goal Title</label>
-        <input class="form-control" id="gTitle" placeholder="e.g. Emergency Fund, Trip to Pokhara" maxlength="200">
-        <span class="form-error" id="gTitleErr"></span>
+  <!-- CREATE / EDIT GOAL MODAL -->
+  <div class="modal-overlay" id="goalModal" role="dialog" aria-modal="true">
+    <div class="modal" style="max-width:460px;">
+      <div class="modal__header">
+        <h3 class="modal__title" id="goalModalTitle">Create Savings Goal</h3>
+        <button type="button" class="modal__close" id="closeGoalModal">&times;</button>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="form-group">
-          <label class="form-label form-label--required" id="gTargetLabel">Target</label>
-          <input class="form-control" id="gTarget" type="number" min="1" step="0.01" placeholder="50000">
-          <span class="form-error" id="gTargetErr"></span>
+      <form id="goalForm">
+        <input type="hidden" id="goalId" />
+        <div class="modal__body">
+          <div class="form-group">
+            <label class="form-label form-label--required" for="goalName">Goal Name</label>
+            <input type="text" class="form-control" id="goalName" placeholder="e.g. Emergency Fund, Mustang Trip" required />
+          </div>
+          <div class="grid grid-2">
+            <div class="form-group">
+              <label class="form-label form-label--required" for="goalTarget">Target Amount</label>
+              <input type="number" step="0.01" min="1" class="form-control font-mono" id="goalTarget" placeholder="100000" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="goalCurrent">Current Saved</label>
+              <input type="number" step="0.01" min="0" class="form-control font-mono" id="goalCurrent" value="0" />
+            </div>
+          </div>
+          <div class="grid grid-2">
+            <div class="form-group">
+              <label class="form-label" for="goalDeadline">Target Date</label>
+              <input type="date" class="form-control" id="goalDeadline" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="goalColor">Accent Color</label>
+              <select class="form-control" id="goalColor">
+                <option value="#7c3aed">Royal Violet</option>
+                <option value="#10b981">Emerald Green</option>
+                <option value="#0ea5e9">Sky Blue</option>
+                <option value="#f59e0b">Warm Amber</option>
+                <option value="#f43f5e">Coral Rose</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="goalNotes">Notes (Optional)</label>
+            <input type="text" class="form-control" id="goalNotes" placeholder="Optional note about this milestone" />
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label" id="gCurrentLabel">Already Saved</label>
-          <input class="form-control" id="gCurrent" type="number" min="0" step="0.01" placeholder="0" value="0">
+        <div class="modal__footer">
+          <button type="button" class="btn btn--ghost" id="cancelGoalModal">Cancel</button>
+          <button type="submit" class="btn btn--primary" id="saveGoalBtn">
+            <i class="fa-solid fa-check"></i><span>Save Goal</span>
+          </button>
         </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="form-group">
-          <label class="form-label">Target Date</label>
-          <input class="form-control" id="gDate" type="date">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Status</label>
-          <select class="form-control" id="gStatus">
-            <option value="active">Active</option>
-            <option value="paused">Paused</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Notes</label>
-        <textarea class="form-control" id="gNotes" rows="2" placeholder="Optional…" maxlength="500"></textarea>
-      </div>
-    </div>
-    <div class="modal__footer">
-      <button class="btn btn--ghost" id="cancelGoalModal">Cancel</button>
-      <button class="btn btn--primary" id="saveGoalBtn"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+      </form>
     </div>
   </div>
-</div>
 
-<!-- Add Funds Modal -->
-<div class="modal-overlay" id="fundsModal">
-  <div class="modal" style="max-width:360px">
-    <div class="modal__header">
-      <h3 class="modal__title">Add Funds</h3>
-      <button class="modal__close" id="closeFundsModal">✕</button>
-    </div>
-    <div class="modal__body">
-      <input type="hidden" id="fundsGoalId">
-      <div style="font-size:14px;color:var(--text-secondary)" id="fundsGoalName"></div>
-      <div class="form-group">
-        <label class="form-label form-label--required" id="fundsAmountLabel">Amount</label>
-        <input class="form-control" id="fundsAmount" type="number" min="1" step="0.01" placeholder="1000">
-        <span class="form-error" id="fundsAmountErr"></span>
+  <!-- QUICK DEPOSIT MODAL -->
+  <div class="modal-overlay" id="depositModal" role="dialog" aria-modal="true">
+    <div class="modal" style="max-width:420px;">
+      <div class="modal__header">
+        <h3 class="modal__title">Add Deposit</h3>
+        <button type="button" class="modal__close" id="closeDepModal">&times;</button>
       </div>
-    </div>
-    <div class="modal__footer">
-      <button class="btn btn--ghost" id="cancelFundsModal">Cancel</button>
-      <button class="btn btn--success" id="saveFundsBtn"><i class="fa-solid fa-plus"></i> Add Funds</button>
+      <form id="depositForm">
+        <input type="hidden" id="depGoalId" />
+        <div class="modal__body">
+          <div class="text-sm text-secondary mb-1">
+            Contributing to <strong id="depGoalName" style="color:var(--text-primary);">Goal</strong>
+          </div>
+          <div class="text-xs text-muted font-mono mb-3" id="depGoalRemaining"></div>
+
+          <div class="form-group">
+            <label class="form-label form-label--required" for="depAmount">Deposit Amount</label>
+            <input type="number" step="0.01" min="0.01" class="form-control font-mono" id="depAmount" placeholder="1000" required />
+          </div>
+          <div class="quick-chips">
+            <button type="button" class="chip-btn" data-add="500">+500</button>
+            <button type="button" class="chip-btn" data-add="1000">+1,000</button>
+            <button type="button" class="chip-btn" data-add="2500">+2,500</button>
+            <button type="button" class="chip-btn" data-add="5000">+5,000</button>
+            <button type="button" class="chip-btn" id="fillRemainingChip">Fill Remaining</button>
+          </div>
+        </div>
+        <div class="modal__footer">
+          <button type="button" class="btn btn--ghost" id="cancelDepModal">Cancel</button>
+          <button type="submit" class="btn btn--primary" id="saveDepBtn">
+            <i class="fa-solid fa-plus"></i><span>Confirm Deposit</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
-</div>
 
-<script src="core.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', async () => {
-  const { api, auth, Toast, Utils, Loader } = window.AppCore;
-  const ok = await window.requireAuth();
-  if (!ok) return;
+  <script src="core.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { api, auth, ConfirmModal, Toast, Utils, Loader } = window.AppCore;
+      if (!(await window.requireAuth())) return;
 
-  const u = auth.user;
-  if (u) {
-    document.getElementById('sidebarName').textContent = u.name || u.username;
-    document.getElementById('sidebarAvatar').textContent = (u.first_name?.[0] || u.username?.[0] || '?').toUpperCase();
-  }
-  const sym = Utils.getCurrencySymbol();
-  document.getElementById('gTargetLabel').textContent = `Target (${sym})`;
-  document.getElementById('gCurrentLabel').textContent = `Already Saved (${sym})`;
-  document.getElementById('fundsAmountLabel').textContent = `Amount (${sym})`;
+      let goals = [];
+      let activeFilter = 'all';
+      let activeSort = 'progress_desc';
+      let SAVINGS_ENDPOINT = null;
+      const CANDIDATE_ENDPOINTS = ['/savings-goals/', '/savings/', '/goals/'];
 
-  let goals = [];
+      const goalModal = document.getElementById('goalModal');
+      const depModal = document.getElementById('depositModal');
 
-  async function loadGoals() {
-    try {
-      const data = await api.get('/savings-goals/', false);
-      goals = Array.isArray(data) ? data : (data.results || []);
-      renderSummary();
-      renderCards();
-    } catch (e) { Toast.error('Failed to load goals: ' + e.message); }
-  }
+      function normalizeDateISO(raw) {
+        if (!raw) return '';
+        return String(raw).split('T')[0];
+      }
 
-  function renderSummary() {
-    const saved = goals.reduce((s, g) => s + parseFloat(g.current_amount || 0), 0);
-    const target = goals.reduce((s, g) => s + parseFloat(g.target_amount || 0), 0);
-    const done = goals.filter(g => g.status === 'completed').length;
-    document.getElementById('sumSaved').textContent = Utils.formatCurrency(saved);
-    document.getElementById('sumTarget').textContent = Utils.formatCurrency(target);
-    document.getElementById('sumDone').textContent = `${done} / ${goals.length}`;
-  }
+      function normalizeGoal(g) {
+        const target = Math.max(0, parseFloat(g.target_amount ?? 0) || 0);
+        const current = Math.max(0, parseFloat(g.current_amount ?? 0) || 0);
+        const deadline = normalizeDateISO(g.deadline || g.target_date);
+        const pct = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0;
+        const isDone = target > 0 && current >= target;
+        return {
+          ...g,
+          _name: g.name || g.title || 'Savings Goal',
+          _target: target,
+          _current: current,
+          _remaining: Math.max(0, target - current),
+          _deadline: deadline,
+          _notes: g.notes || g.description || '',
+          _color: g.color || '#7c3aed',
+          _pct: pct,
+          _isDone: isDone,
+        };
+      }
 
-  function renderCards() {
-    const grid = document.getElementById('goalsGrid');
-    if (!goals.length) {
-      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;padding:60px 0">
-        <i class="fa-solid fa-piggy-bank" style="font-size:48px"></i>
-        <div class="empty-state__title">No savings goals yet</div>
-        <div class="empty-state__sub">Start saving toward something meaningful</div>
-      </div>`;
-      return;
-    }
-    grid.innerHTML = goals.map(g => {
-      const pct = Math.min(g.progress_percentage || 0, 100);
-      const isDone = g.status === 'completed';
-      const daysTxt = g.days_remaining != null
-        ? (g.days_remaining > 0 ? `${g.days_remaining}d left` : g.days_remaining === 0 ? 'Due today' : `${Math.abs(g.days_remaining)}d overdue`)
-        : 'No deadline';
-      return `<div class="goal-card ${isDone ? 'goal-card--completed' : ''}">
-        <div class="goal-card__top">
-          <div class="goal-card__title">${Utils.escapeHtml(g.title)}</div>
-          <span class="goal-card__status goal-card__status--${g.status}">${g.status}</span>
-        </div>
-        <div class="goal-card__amounts">
-          <span class="goal-card__saved">${Utils.formatCurrency(g.current_amount)}</span>
-          <span class="goal-card__target">/ ${Utils.formatCurrency(g.target_amount)}</span>
-        </div>
-        <div class="goal-card__bar"><div class="goal-card__fill" style="width:${pct}%"></div></div>
-        <div class="goal-card__meta">
-          <span>${pct.toFixed(0)}% complete</span>
-          <span>${daysTxt}</span>
-        </div>
-        ${g.notes ? `<p style="font-size:12px;color:var(--text-muted);margin-bottom:14px">${Utils.escapeHtml(g.notes)}</p>` : ''}
-        <div class="goal-card__actions">
-          ${!isDone ? `<button class="btn btn--success btn--sm add-funds-btn" data-id="${g.id}" style="flex:1"><i class="fa-solid fa-plus"></i> Add Funds</button>` : `<span style="flex:1;font-size:13px;color:var(--success);font-weight:500"><i class="fa-solid fa-circle-check"></i> Goal Reached!</span>`}
-          <button class="btn btn--ghost btn--icon btn--sm edit-goal-btn" data-id="${g.id}" title="Edit"><i class="fa-solid fa-pen" style="font-size:12px"></i></button>
-          <button class="btn btn--ghost btn--icon btn--sm del-goal-btn" data-id="${g.id}" title="Delete"><i class="fa-solid fa-trash-can" style="font-size:12px;color:var(--danger)"></i></button>
-        </div>
-      </div>`;
-    }).join('');
+      function openGoalModal(item = null) {
+        document.getElementById('goalModalTitle').textContent = item ? 'Edit Savings Goal' : 'Create Savings Goal';
+        document.getElementById('goalId').value = item?.id || '';
+        document.getElementById('goalName').value = item?._name || '';
+        document.getElementById('goalTarget').value = item?._target || '';
+        document.getElementById('goalCurrent').value = item ? item._current : 0;
+        document.getElementById('goalDeadline').value = item?._deadline || '';
+        document.getElementById('goalColor').value = item?._color || '#7c3aed';
+        document.getElementById('goalNotes').value = item?._notes || '';
+        goalModal.classList.add('open');
+        setTimeout(() => document.getElementById('goalName').focus(), 50);
+      }
+      const closeGoalModal = () => goalModal.classList.remove('open');
 
-    document.querySelectorAll('.add-funds-btn').forEach(b => b.addEventListener('click', () => openFunds(parseInt(b.dataset.id, 10))));
-    document.querySelectorAll('.edit-goal-btn').forEach(b => b.addEventListener('click', () => openEdit(parseInt(b.dataset.id, 10))));
-    document.querySelectorAll('.del-goal-btn').forEach(b => b.addEventListener('click', () => deleteGoal(parseInt(b.dataset.id, 10))));
-  }
+      document.getElementById('newGoalBtn').addEventListener('click', () => openGoalModal());
+      document.getElementById('closeGoalModal').addEventListener('click', closeGoalModal);
+      document.getElementById('cancelGoalModal').addEventListener('click', closeGoalModal);
+      goalModal.addEventListener('click', e => { if (e.target === goalModal) closeGoalModal(); });
 
-  const gModal = document.getElementById('goalModal');
-  function closeGModal() { gModal.classList.remove('open'); }
-  document.getElementById('closeGoalModal').addEventListener('click', closeGModal);
-  document.getElementById('cancelGoalModal').addEventListener('click', closeGModal);
-  gModal.addEventListener('click', e => { if (e.target === gModal) closeGModal(); });
+      let activeDepositGoal = null;
+      function openDepositModal(item) {
+        activeDepositGoal = item;
+        document.getElementById('depGoalId').value = item.id;
+        document.getElementById('depGoalName').textContent = item._name;
+        document.getElementById('depGoalRemaining').textContent = item._isDone
+          ? 'Goal already reached — extra deposits will build a surplus.'
+          : `${Utils.formatCurrency(item._remaining)} remaining to reach target`;
+        document.getElementById('depAmount').value = '';
+        const fillBtn = document.getElementById('fillRemainingChip');
+        fillBtn.style.display = item._remaining > 0 ? 'inline-block' : 'none';
+        depModal.classList.add('open');
+        setTimeout(() => document.getElementById('depAmount').focus(), 50);
+      }
+      const closeDepModal = () => {
+        activeDepositGoal = null;
+        depModal.classList.remove('open');
+      };
 
-  function openAdd() {
-    document.getElementById('editGoalId').value = '';
-    document.getElementById('goalModalTitle').textContent = 'New Savings Goal';
-    ['gTitle', 'gTarget', 'gDate', 'gNotes'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('gCurrent').value = '0';
-    document.getElementById('gStatus').value = 'active';
-    ['gTitleErr', 'gTargetErr'].forEach(id => document.getElementById(id).textContent = '');
-    gModal.classList.add('open');
-  }
+      document.getElementById('closeDepModal').addEventListener('click', closeDepModal);
+      document.getElementById('cancelDepModal').addEventListener('click', closeDepModal);
+      depModal.addEventListener('click', e => { if (e.target === depModal) closeDepModal(); });
 
-  function openEdit(id) {
-    const g = goals.find(x => x.id === id);
-    if (!g) return;
-    document.getElementById('editGoalId').value = g.id;
-    document.getElementById('goalModalTitle').textContent = 'Edit Savings Goal';
-    document.getElementById('gTitle').value = g.title;
-    document.getElementById('gTarget').value = parseFloat(g.target_amount);
-    document.getElementById('gCurrent').value = parseFloat(g.current_amount);
-    document.getElementById('gDate').value = g.target_date || '';
-    document.getElementById('gStatus').value = g.status;
-    document.getElementById('gNotes').value = g.notes || '';
-    ['gTitleErr', 'gTargetErr'].forEach(elId => document.getElementById(elId).textContent = '');
-    gModal.classList.add('open');
-  }
+      document.querySelectorAll('.chip-btn[data-add]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const inp = document.getElementById('depAmount');
+          const curVal = parseFloat(inp.value) || 0;
+          inp.value = (curVal + parseFloat(btn.dataset.add)).toFixed(0);
+        });
+      });
 
-  document.getElementById('saveGoalBtn').addEventListener('click', async () => {
-    const btn = document.getElementById('saveGoalBtn');
-    const id = document.getElementById('editGoalId').value;
-    const title = document.getElementById('gTitle').value.trim();
-    const target = parseFloat(document.getElementById('gTarget').value);
-    const current = parseFloat(document.getElementById('gCurrent').value) || 0;
-    const date = document.getElementById('gDate').value || null;
-    const status = document.getElementById('gStatus').value;
-    const notes = document.getElementById('gNotes').value.trim();
+      document.getElementById('fillRemainingChip').addEventListener('click', () => {
+        if (!activeDepositGoal) return;
+        document.getElementById('depAmount').value = activeDepositGoal._remaining.toFixed(2).replace(/\.00$/, '');
+      });
 
-    let valid = true;
-    const setErr = (elId, msg) => { document.getElementById(elId).textContent = msg; if (msg) valid = false; };
-    setErr('gTitleErr', title ? '' : 'Title is required.');
-    setErr('gTargetErr', target > 0 ? '' : 'Target amount required.');
-    if (!valid) return;
+      document.querySelectorAll('#goalFilterTabs .filter-pill').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('#goalFilterTabs .filter-pill').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          activeFilter = tab.dataset.filter;
+          renderGoals();
+        });
+      });
 
-    const payload = { title, target_amount: target, current_amount: current, target_date: date, status, notes };
-    Loader.showBtn(btn);
-    try {
-      id ? await api.put(`/savings-goals/${id}/`, payload) : await api.post('/savings-goals/', payload);
-      Toast.success(id ? 'Goal updated!' : 'Goal created!');
-      closeGModal();
-      loadGoals();
-    } catch (e) { Toast.error(e.message); }
-    finally { Loader.showBtn(btn, false); }
-  });
+      document.getElementById('goalSortSelect').addEventListener('change', e => {
+        activeSort = e.target.value;
+        renderGoals();
+      });
 
-  const fModal = document.getElementById('fundsModal');
-  function closeFModal() { fModal.classList.remove('open'); }
-  document.getElementById('closeFundsModal').addEventListener('click', closeFModal);
-  document.getElementById('cancelFundsModal').addEventListener('click', closeFModal);
-  fModal.addEventListener('click', e => { if (e.target === fModal) closeFModal(); });
+      document.getElementById('goalForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        if (!SAVINGS_ENDPOINT) {
+          Toast.error('Savings API route was not found on your backend.');
+          return;
+        }
+        const id = document.getElementById('goalId').value;
+        const btn = document.getElementById('saveGoalBtn');
+        const nameVal = document.getElementById('goalName').value.trim();
+        const targetVal = parseFloat(document.getElementById('goalTarget').value);
+        const currentVal = parseFloat(document.getElementById('goalCurrent').value || 0);
+        const deadlineVal = document.getElementById('goalDeadline').value || null;
+        const notesVal = document.getElementById('goalNotes').value.trim();
 
-  function openFunds(id) {
-    const g = goals.find(x => x.id === id);
-    if (!g) return;
-    document.getElementById('fundsGoalId').value = id;
-    document.getElementById('fundsGoalName').textContent = `Adding funds to: ${g.title} (${Utils.formatCurrency(g.remaining_amount)} remaining)`;
-    document.getElementById('fundsAmount').value = '';
-    document.getElementById('fundsAmountErr').textContent = '';
-    fModal.classList.add('open');
-  }
+        if (!nameVal || Number.isNaN(targetVal) || targetVal <= 0) {
+          Toast.warning('Enter a valid goal name and target amount.');
+          return;
+        }
 
-  document.getElementById('saveFundsBtn').addEventListener('click', async () => {
-    const btn = document.getElementById('saveFundsBtn');
-    const id = document.getElementById('fundsGoalId').value;
-    const amount = parseFloat(document.getElementById('fundsAmount').value);
-    if (!amount || amount <= 0) {
-      document.getElementById('fundsAmountErr').textContent = 'Enter a positive amount.';
-      return;
-    }
-    Loader.showBtn(btn);
-    try {
-      await api.post(`/savings-goals/${id}/add_funds/`, { amount });
-      Toast.success(`Added ${Utils.formatCurrency(amount)}!`);
-      closeFModal();
-      loadGoals();
-    } catch (e) { Toast.error(e.message); }
-    finally { Loader.showBtn(btn, false); }
-  });
+        Loader.showBtn(btn, true);
+        const payload = {
+          name: nameVal,
+          title: nameVal,
+          target_amount: targetVal,
+          current_amount: Number.isNaN(currentVal) ? 0 : Math.max(0, currentVal),
+          deadline: deadlineVal,
+          target_date: deadlineVal,
+          color: document.getElementById('goalColor').value,
+          notes: notesVal,
+          description: notesVal,
+        };
 
-  async function deleteGoal(id) {
-    if (!confirm('Delete this savings goal?')) return;
-    try {
-      await api.delete(`/savings-goals/${id}/`);
-      Toast.success('Deleted.');
-      loadGoals();
-    } catch (e) { Toast.error(e.message); }
-  }
+        try {
+          if (id) {
+            await api.patch(`${SAVINGS_ENDPOINT}${id}/`, payload);
+            Toast.success('Savings goal updated');
+          } else {
+            await api.post(SAVINGS_ENDPOINT, payload);
+            Toast.success('Savings goal created');
+          }
+          closeGoalModal();
+          await fetchGoals();
+        } catch (err) {
+          Toast.error(err.message);
+        } finally {
+          Loader.showBtn(btn, false);
+        }
+      });
 
-  document.getElementById('addGoalBtn').addEventListener('click', openAdd);
-  document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
+      document.getElementById('depositForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const id = document.getElementById('depGoalId').value;
+        const addAmt = parseFloat(document.getElementById('depAmount').value);
+        const goal = goals.find(g => String(g.id) === String(id));
+        if (!goal || !SAVINGS_ENDPOINT) return;
 
-  loadGoals();
-});
-</script>
+        if (Number.isNaN(addAmt) || addAmt <= 0) {
+          Toast.warning('Please enter a deposit amount greater than 0.');
+          return;
+        }
+
+        const btn = document.getElementById('saveDepBtn');
+        Loader.showBtn(btn, true);
+        try {
+          const updatedAmount = Number((goal._current + addAmt).toFixed(2));
+          await api.patch(`${SAVINGS_ENDPOINT}${id}/`, { current_amount: updatedAmount });
+          const reachedNow = !goal._isDone && updatedAmount >= goal._target;
+          Toast.success(
+            reachedNow
+              ? `Milestone reached! "${goal._name}" is now 100% funded!`
+              : `Added ${Utils.formatCurrency(addAmt)} to ${goal._name}`
+          );
+          closeDepModal();
+          await fetchGoals();
+        } catch (err) {
+          Toast.error(err.message);
+        } finally {
+          Loader.showBtn(btn, false);
+        }
+      });
+
+      function renderGoals() {
+        const totalSaved = goals.reduce((s, g) => s + g._current, 0);
+        const totalTarget = goals.reduce((s, g) => s + g._target, 0);
+        const completedCount = goals.filter(g => g._isDone).length;
+        const overallPct = totalTarget > 0 ? Math.min(100, Math.round((totalSaved / totalTarget) * 100)) : 0;
+
+        document.getElementById('savTotalSaved').textContent = Utils.formatCurrency(totalSaved);
+        document.getElementById('savOverallMeta').textContent = `${overallPct}% of combined target`;
+        document.getElementById('savTargetSum').textContent = Utils.formatCurrency(totalTarget);
+        document.getElementById('savMilestones').textContent = `${completedCount} / ${goals.length} completed`;
+        document.getElementById('savRemainingSum').textContent = Utils.formatCurrency(Math.max(0, totalTarget - totalSaved));
+
+        let visibleGoals = [...goals];
+        if (activeFilter === 'active') visibleGoals = visibleGoals.filter(g => !g._isDone);
+        else if (activeFilter === 'completed') visibleGoals = visibleGoals.filter(g => g._isDone);
+
+        visibleGoals.sort((a, b) => {
+          if (activeSort === 'progress_desc') return b._pct - a._pct;
+          if (activeSort === 'target_desc') return b._target - a._target;
+          if (activeSort === 'deadline_asc') {
+            if (!a._deadline && !b._deadline) return 0;
+            if (!a._deadline) return 1;
+            if (!b._deadline) return -1;
+            return a._deadline.localeCompare(b._deadline);
+          }
+          return Number(b.id || 0) - Number(a.id || 0);
+        });
+
+        const grid = document.getElementById('goalsGrid');
+        if (!goals.length) {
+          grid.innerHTML = `
+            <div class="card" style="grid-column:1/-1;">
+              <div class="empty-state" style="padding:40px 20px;">
+                <i class="fa-solid fa-piggy-bank"></i>
+                <div class="empty-state__title">No savings goals yet</div>
+                <div class="empty-state__sub">Create a dedicated fund for emergencies, travel, or major purchases.</div>
+                <button type="button" class="btn btn--primary btn--sm mt-2" onclick="document.getElementById('newGoalBtn').click()">
+                  <i class="fa-solid fa-plus"></i> Start First Goal
+                </button>
+              </div>
+            </div>`;
+          return;
+        }
+
+        if (!visibleGoals.length) {
+          grid.innerHTML = `
+            <div class="card" style="grid-column:1/-1;">
+              <div class="empty-state" style="padding:36px 20px;">
+                <i class="fa-solid fa-filter"></i>
+                <div class="empty-state__title">No goals in this view</div>
+                <div class="empty-state__sub">Switch the filter pills above to see your other savings goals.</div>
+              </div>
+            </div>`;
+          return;
+        }
+
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
+        grid.innerHTML = visibleGoals.map(g => {
+          const accent = g._isDone ? '#10b981' : g._color;
+          let timelineHtml = `<span class="text-xs text-muted"><i class="fa-regular fa-clock mr-1"></i>Flexible timeline</span>`;
+
+          if (g._deadline) {
+            const targetDt = new Date(`${g._deadline}T00:00:00`);
+            const daysLeft = Math.ceil((targetDt - todayStart) / 86400000);
+            if (g._isDone) {
+              timelineHtml = `<span class="text-xs" style="color:var(--success);"><i class="fa-solid fa-check-circle mr-1"></i>Achieved &middot; ${Utils.formatDate(g._deadline)}</span>`;
+            } else if (daysLeft > 0) {
+              const monthsLeft = Math.max(1, daysLeft / 30);
+              const pace = g._remaining / monthsLeft;
+              timelineHtml = `<span class="text-xs text-muted"><i class="fa-regular fa-calendar mr-1"></i>${daysLeft}d left &middot; ~${Utils.formatCurrency(pace)}/mo</span>`;
+            } else if (daysLeft === 0) {
+              timelineHtml = `<span class="text-xs" style="color:var(--warning);"><i class="fa-solid fa-bell mr-1"></i>Due today</span>`;
+            } else {
+              timelineHtml = `<span class="text-xs" style="color:var(--danger);"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Past due (${Utils.formatDate(g._deadline)})</span>`;
+            }
+          }
+
+          return `
+            <article class="goal-card" style="--goal-accent:${Utils.escapeHtml(accent)};">
+              <div class="goal-card__head">
+                <div class="flex items-center gap-3" style="min-width:0;">
+                  <div class="goal-icon" style="background:${Utils.escapeHtml(accent)}18;color:${Utils.escapeHtml(accent)};">
+                    <i class="fa-solid ${g._isDone ? 'fa-trophy' : 'fa-piggy-bank'}"></i>
+                  </div>
+                  <div style="min-width:0;">
+                    <div class="font-semibold truncate" style="font-size:15.5px;">${Utils.escapeHtml(g._name)}</div>
+                    <div class="mt-1">${timelineHtml}</div>
+                  </div>
+                </div>
+                <span class="badge ${g._isDone ? 'badge--success' : 'badge--neutral'}">${g._isDone ? 'Completed' : `${g._pct}%`}</span>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs font-mono mb-1">
+                  <span class="text-muted">Funded</span>
+                  <span class="font-semibold" style="color:${Utils.escapeHtml(accent)};">${g._pct}%</span>
+                </div>
+                <div class="progress progress--lg mb-2">
+                  <div class="progress__bar" style="width:${g._pct}%;background:${Utils.escapeHtml(accent)};"></div>
+                </div>
+                <div class="goal-metrics">
+                  <div>
+                    <div class="goal-metrics__lbl">Saved / Target</div>
+                    <div class="goal-metrics__val">${Utils.formatCurrency(g._current)} <span class="text-xs text-muted">/ ${Utils.formatCurrency(g._target)}</span></div>
+                  </div>
+                  <div class="text-right">
+                    <div class="goal-metrics__lbl">${g._isDone ? 'Status' : 'Remaining'}</div>
+                    <div class="goal-metrics__val" style="color:${g._isDone ? 'var(--success)' : 'var(--text-primary)'};">
+                      ${g._isDone ? '100% Funded' : Utils.formatCurrency(g._remaining)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              ${g._notes ? `<div class="text-xs text-secondary truncate" title="${Utils.escapeHtml(g._notes)}">${Utils.escapeHtml(g._notes)}</div>` : ''}
+
+              <div class="goal-card__footer">
+                <button type="button" class="btn ${g._isDone ? 'btn--ghost' : 'btn--primary'} btn--sm dep-goal" data-id="${g.id}">
+                  <i class="fa-solid fa-plus"></i><span>${g._isDone ? 'Add Extra' : 'Add Funds'}</span>
+                </button>
+                <div class="flex gap-1">
+                  <button type="button" class="btn btn--ghost btn--icon btn--sm edit-goal" data-id="${g.id}" title="Edit goal">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button type="button" class="btn btn--danger btn--icon btn--sm del-goal" data-id="${g.id}" title="Delete goal">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </article>`;
+        }).join('');
+
+        grid.querySelectorAll('.dep-goal').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const item = goals.find(x => String(x.id) === btn.dataset.id);
+            if (item) openDepositModal(item);
+          });
+        });
+
+        grid.querySelectorAll('.edit-goal').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const item = goals.find(x => String(x.id) === btn.dataset.id);
+            if (item) openGoalModal(item);
+          });
+        });
+
+        grid.querySelectorAll('.del-goal').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const item = goals.find(x => String(x.id) === btn.dataset.id);
+            const ok = await ConfirmModal.ask({
+              title: 'Delete Savings Goal',
+              message: `Delete "${item?._name || 'this goal'}"? This action cannot be undone.`,
+              confirmText: 'Delete',
+            });
+            if (!ok) return;
+
+            try {
+              await api.delete(`${SAVINGS_ENDPOINT}${btn.dataset.id}/`);
+              Toast.success('Goal deleted');
+              await fetchGoals();
+            } catch (err) {
+              Toast.error(err.message);
+            }
+          });
+        });
+      }
+
+      async function fetchGoals() {
+        try {
+          if (SAVINGS_ENDPOINT) {
+            const raw = await api.getAll(SAVINGS_ENDPOINT);
+            goals = raw.map(normalizeGoal);
+            renderGoals();
+            return;
+          }
+
+          for (const candidate of CANDIDATE_ENDPOINTS) {
+            try {
+              const raw = await api.getAll(candidate);
+              SAVINGS_ENDPOINT = candidate;
+              goals = raw.map(normalizeGoal);
+              renderGoals();
+              return;
+            } catch (err) {
+              if (err.status !== 404) throw err;
+            }
+          }
+          document.getElementById('goalsGrid').innerHTML = `
+            <div class="card" style="grid-column:1/-1;">
+              <div class="empty-state">
+                <i class="fa-solid fa-plug-circle-xmark"></i>
+                <div class="empty-state__title">Savings API endpoint not found</div>
+                <div class="empty-state__sub">Checked /api/savings-goals/, /api/savings/, and /api/goals/. Verify your Django URL route.</div>
+              </div>
+            </div>`;
+        } catch (err) {
+          Toast.error('Failed to load savings goals: ' + err.message);
+        }
+      }
+
+      document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
+      await fetchGoals();
+    });
+  </script>
 </body>
 </html>

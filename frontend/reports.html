@@ -1,265 +1,588 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reports — EMS</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="assets/css/main.css">
-<style>
-.report-layout { display:grid; grid-template-columns:280px 1fr; gap:20px; align-items:start; }
-.config-panel { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:22px; position:sticky; top:76px; }
-.config-panel h3 { font-size:15px; font-weight:600; margin-bottom:16px; }
-.export-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:16px; }
-.export-btn { display:flex; align-items:center; justify-content:center; gap:7px; padding:10px; border:1px solid var(--border-strong); border-radius:var(--radius); background:var(--bg-card); color:var(--text-primary); font-size:13px; font-weight:500; cursor:pointer; transition:all 0.15s; font-family:var(--font-sans); }
-.export-btn:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
-.preview-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
-.preview-header { padding:18px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
-.preview-kpis { display:grid; grid-template-columns:repeat(4,1fr); border-bottom:1px solid var(--border); }
-.pkpi { padding:16px 20px; border-right:1px solid var(--border); }
-.pkpi:last-child { border-right:none; }
-.pkpi__label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); }
-.pkpi__val { font-size:20px; font-weight:700; font-family:var(--font-mono); margin-top:4px; }
-.cat-breakdown { padding:20px 24px; }
-.cat-row { display:flex; align-items:center; gap:12px; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; }
-.cat-row:last-child { border-bottom:none; }
-@media (max-width:768px) { .report-layout { grid-template-columns:1fr; } .preview-kpis { grid-template-columns:1fr 1fr; } }
-@media print { .sidebar, .topbar, .config-panel { display:none !important; } .main { margin:0 !important; } }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reports — Expense Management System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <style>
+    .report-controls {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-xs);
+    }
+    .preset-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .preset-pill {
+      padding: 5px 13px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-base);
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .preset-pill:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+    .preset-pill.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+    .report-filter-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+    .export-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .export-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      cursor: pointer;
+      text-align: left;
+      transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+      box-shadow: var(--shadow-xs);
+    }
+    .export-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--accent);
+    }
+    .export-card__icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+    .export-card__title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .export-card__sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+    .statement-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding-bottom: 16px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .cat-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .cat-summary-item {
+      padding: 11px 14px;
+      border-radius: var(--radius);
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .data-table th.text-right,
+    .data-table td.text-right {
+      text-align: right;
+    }
+
+    @media (max-width: 960px) {
+      .report-filter-grid,
+      .export-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 540px) {
+      .report-filter-grid,
+      .export-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ── CLEAN PRINT / PDF LAYOUT ── */
+    @media print {
+      .sidebar,
+      .topbar,
+      .report-controls,
+      .export-strip {
+        display: none !important;
+      }
+      .main {
+        margin-left: 0 !important;
+      }
+      .page {
+        padding: 0 !important;
+        max-width: 100% !important;
+      }
+      .card {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+      }
+      body {
+        background: #ffffff !important;
+        color: #111111 !important;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="layout">
-  <aside class="sidebar">
-    <a href="dashboard.html" class="sidebar__brand">
-      <div class="sidebar__brand-icon">💰</div>
-      <div>
-        <div class="sidebar__brand-name">EMS</div>
-        <div class="sidebar__brand-sub">Finance Manager</div>
-      </div>
-    </a>
-    <nav class="sidebar__nav">
-      <div class="nav-section">
-        <div class="nav-section-label">Main</div>
-        <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
-        <a href="expenses.html" class="nav-link"><i class="fa-solid fa-receipt"></i> Expenses</a>
-        <a href="budget.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Budgets</a>
-        <a href="savings.html" class="nav-link"><i class="fa-solid fa-piggy-bank"></i> Savings</a>
-      </div>
-      <div class="nav-section">
-        <div class="nav-section-label">Insights</div>
-        <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> Analytics</a>
-        <a href="reports.html" class="nav-link active"><i class="fa-solid fa-file-arrow-down"></i> Reports</a>
-      </div>
-      <div class="nav-section">
-        <div class="nav-section-label">Account</div>
-        <a href="settings.html" class="nav-link"><i class="fa-solid fa-gear"></i> Settings</a>
-      </div>
-    </nav>
-    <div class="sidebar__footer">
-      <div class="user-chip">
-        <div class="user-avatar" id="sidebarAvatar">?</div>
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <a href="dashboard.html" class="sidebar__brand">
+        <div class="sidebar__brand-icon"><i class="fa-solid fa-wallet"></i></div>
         <div>
-          <div class="user-name" id="sidebarName">Loading…</div>
-          <div class="user-role">Personal Account</div>
+          <div class="sidebar__brand-name">EMS</div>
+          <div class="sidebar__brand-sub">Finance Manager</div>
+        </div>
+      </a>
+
+      <nav class="sidebar__nav">
+        <div class="nav-section">
+          <div class="nav-section-label">Overview</div>
+          <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></a>
+          <a href="expenses.html" class="nav-link"><i class="fa-solid fa-receipt"></i><span>Expenses</span></a>
+          <a href="budget.html" class="nav-link"><i class="fa-solid fa-bullseye"></i><span>Budgets</span></a>
+          <a href="savings.html" class="nav-link"><i class="fa-solid fa-piggy-bank"></i><span>Savings Goals</span></a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Insights</div>
+          <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line"></i><span>Analytics &amp; AI</span></a>
+          <a href="reports.html" class="nav-link active"><i class="fa-solid fa-file-export"></i><span>Reports</span></a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Account</div>
+          <a href="settings.html" class="nav-link"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+        </div>
+      </nav>
+
+      <div class="sidebar__footer">
+        <div class="user-chip" onclick="location.href='settings.html'">
+          <div class="user-avatar" id="sidebarAvatar">U</div>
+          <div style="min-width:0;flex:1;">
+            <div class="user-name truncate" id="sidebarUserName">User</div>
+            <div class="user-role truncate" id="sidebarUserEmail">Personal Account</div>
+          </div>
         </div>
       </div>
-    </div>
-  </aside>
+    </aside>
 
-  <div class="main">
-    <header class="topbar">
-      <div class="topbar__left"><div class="topbar__title">Reports &amp; Export</div></div>
-      <div class="topbar__right">
-        <button class="btn btn--ghost btn--sm" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i></button>
-      </div>
-    </header>
+    <!-- MAIN -->
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar__left">
+          <div>
+            <div class="topbar__title">Financial Reports &amp; Statements</div>
+            <div class="topbar__sub">Generate filtered statements and export to CSV, Excel, JSON, or PDF</div>
+          </div>
+        </div>
+        <div class="topbar__right">
+          <button type="button" class="btn btn--ghost btn--icon btn--sm" id="logoutBtn" title="Sign out">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </header>
 
-    <div class="page">
-      <div class="report-layout">
-        <div class="config-panel">
-          <h3><i class="fa-solid fa-sliders" style="color:var(--accent);margin-right:6px"></i> Report Settings</h3>
-          <div class="form-group">
-            <label class="form-label">Period</label>
-            <select class="form-control" id="rPeriod">
-              <option value="week">Last 7 Days</option>
-              <option value="month" selected>Last 30 Days</option>
-              <option value="quarter">Last 90 Days</option>
-              <option value="year">This Year</option>
-              <option value="custom">Custom Range</option>
-            </select>
+      <main class="page">
+        <!-- REPORT SCOPE & FILTERS -->
+        <section class="report-controls">
+          <div class="preset-bar" id="presetPills">
+            <button type="button" class="preset-pill active" data-preset="all">All Time</button>
+            <button type="button" class="preset-pill" data-preset="month">This Month</button>
+            <button type="button" class="preset-pill" data-preset="30d">Last 30 Days</button>
+            <button type="button" class="preset-pill" data-preset="90d">Last 90 Days</button>
+            <button type="button" class="preset-pill" data-preset="ytd">Year to Date</button>
           </div>
-          <div id="customDates" style="display:none">
-            <div class="form-group"><label class="form-label">From</label><input class="form-control" type="date" id="rFrom"></div>
-            <div class="form-group"><label class="form-label">To</label><input class="form-control" type="date" id="rTo"></div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Category</label>
-            <select class="form-control" id="rCategory"><option value="">All Categories</option></select>
-          </div>
-          <button class="btn btn--primary w-full" id="generateBtn" style="margin-top:4px"><i class="fa-solid fa-rotate"></i> Generate Report</button>
 
-          <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
-            <div style="font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Export As</div>
-            <div class="export-grid">
-              <button class="export-btn" id="expCsv"><i class="fa-solid fa-file-csv" style="color:#10b981"></i> CSV</button>
-              <button class="export-btn" id="expExcel"><i class="fa-solid fa-file-excel" style="color:#059669"></i> Excel</button>
-              <button class="export-btn" id="expJson"><i class="fa-solid fa-code" style="color:#7c3aed"></i> JSON</button>
-              <button class="export-btn" id="expPrint"><i class="fa-solid fa-print" style="color:#0ea5e9"></i> Print / PDF</button>
+          <div class="report-filter-grid">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="repFrom">From Date</label>
+              <input type="date" class="form-control" id="repFrom" />
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="repTo">To Date</label>
+              <input type="date" class="form-control" id="repTo" />
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="repCategory">Category</label>
+              <select class="form-control" id="repCategory">
+                <option value="">All Categories</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label" for="repChannel">Payment Channel</label>
+              <select class="form-control" id="repChannel">
+                <option value="">All Channels</option>
+                <option value="esewa">eSewa</option>
+                <option value="khalti">Khalti</option>
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="netbanking">Net Banking</option>
+              </select>
             </div>
           </div>
-        </div>
+        </section>
 
-        <div class="preview-card" id="previewArea">
-          <div class="preview-header">
+        <!-- ONE-CLICK EXPORT FORMAT CARDS -->
+        <section class="export-strip">
+          <button type="button" class="export-card" id="exportCsvBtn">
+            <div class="export-card__icon" style="background:var(--success-bg);color:var(--emerald-600);">
+              <i class="fa-solid fa-file-csv"></i>
+            </div>
             <div>
-              <div style="font-size:16px;font-weight:600" id="reportTitle">Expense Report</div>
-              <div style="font-size:12px;color:var(--text-muted)" id="reportSub">Select parameters and click Generate</div>
+              <div class="export-card__title">Export CSV</div>
+              <div class="export-card__sub">Universal spreadsheet data</div>
             </div>
-            <div style="font-size:12px;color:var(--text-muted)" id="reportDate"></div>
+          </button>
+
+          <button type="button" class="export-card" id="exportExcelBtn">
+            <div class="export-card__icon" style="background:var(--info-bg);color:var(--sky-600);">
+              <i class="fa-solid fa-file-excel"></i>
+            </div>
+            <div>
+              <div class="export-card__title">Export Excel</div>
+              <div class="export-card__sub">Formatted .xls workbook</div>
+            </div>
+          </button>
+
+          <button type="button" class="export-card" id="exportJsonBtn">
+            <div class="export-card__icon" style="background:var(--accent-light);color:var(--accent);">
+              <i class="fa-solid fa-file-code"></i>
+            </div>
+            <div>
+              <div class="export-card__title">Export JSON</div>
+              <div class="export-card__sub">Structured API statement</div>
+            </div>
+          </button>
+
+          <button type="button" class="export-card" id="exportPdfBtn">
+            <div class="export-card__icon" style="background:var(--danger-bg);color:var(--rose-600);">
+              <i class="fa-solid fa-file-pdf"></i>
+            </div>
+            <div>
+              <div class="export-card__title">Print / PDF</div>
+              <div class="export-card__sub">Clean printable statement</div>
+            </div>
+          </button>
+        </section>
+
+        <!-- STATEMENT PREVIEW CARD -->
+        <section class="card">
+          <div class="statement-header">
+            <div>
+              <div class="stat-card__label">Expenditure Statement Preview</div>
+              <h2 style="font-size:18px;font-weight:600;margin-top:2px;" id="stmtPeriodHeading">All Recorded Transactions</h2>
+              <div class="text-xs text-muted mt-1" id="stmtGeneratedMeta">Prepared for account holder</div>
+            </div>
+            <div class="text-right">
+              <div class="stat-card__label">Statement Total</div>
+              <div class="font-mono font-semibold" style="font-size:24px;color:var(--text-primary);" id="stmtTotalAmount">—</div>
+              <div class="text-xs text-muted" id="stmtCountMeta">0 entries</div>
+            </div>
           </div>
-          <div class="preview-kpis">
-            <div class="pkpi"><div class="pkpi__label">Total Spent</div><div class="pkpi__val" id="rkTotal">—</div></div>
-            <div class="pkpi"><div class="pkpi__label">Transactions</div><div class="pkpi__val" id="rkCount">—</div></div>
-            <div class="pkpi"><div class="pkpi__label">Average</div><div class="pkpi__val" id="rkAvg">—</div></div>
-            <div class="pkpi"><div class="pkpi__label">Top Category</div><div class="pkpi__val" id="rkTopCat" style="font-size:15px">—</div></div>
-          </div>
-          <div class="cat-breakdown" id="catBreakdown">
-            <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:10px">Category Breakdown</div>
-            <div id="catRows"><div class="empty-state" style="padding:20px 0"><div class="empty-state__sub">Click Generate Report to load data</div></div></div>
-          </div>
-          <div class="table-wrapper" style="border-top:1px solid var(--border)">
+
+          <!-- CATEGORY BREAKDOWN PILLS -->
+          <div class="cat-summary-grid" id="stmtCategorySummary"></div>
+
+          <!-- ITEMIZED LEDGER TABLE -->
+          <div class="table-wrap">
             <table class="data-table">
-              <thead><tr><th>Date</th><th>Title</th><th>Category</th><th>Payment</th><th class="text-right">Amount</th></tr></thead>
-              <tbody id="reportTableBody"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px">No data loaded</td></tr></tbody>
+              <thead>
+                <tr>
+                  <th style="width:135px;">Date</th>
+                  <th>Description</th>
+                  <th style="width:165px;">Category</th>
+                  <th style="width:130px;">Channel</th>
+                  <th class="text-right" style="width:140px;">Amount</th>
+                </tr>
+              </thead>
+              <tbody id="stmtTbody">
+                <tr><td colspan="5" class="text-center text-muted" style="padding:36px;">Loading statement…</td></tr>
+              </tbody>
             </table>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   </div>
-</div>
 
-<script src="core.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', async () => {
-  const { api, auth, Toast, Utils, CategoryLoader } = window.AppCore;
-  const ok = await window.requireAuth();
-  if (!ok) return;
+  <script src="core.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { api, auth, Toast, Utils, CategoryLoader } = window.AppCore;
+      if (!(await window.requireAuth())) return;
 
-  const u = auth.user;
-  if (u) {
-    document.getElementById('sidebarName').textContent = u.name || u.username;
-    document.getElementById('sidebarAvatar').textContent = (u.first_name?.[0] || u.username?.[0] || '?').toUpperCase();
-  }
+      let allExpenses = [];
+      let reportRows = [];
 
-  let reportData = [];
+      const CHANNEL_LABELS = {
+        esewa: 'eSewa',
+        khalti: 'Khalti',
+        cash: 'Cash',
+        card: 'Card',
+        netbanking: 'Net Banking',
+      };
 
-  document.getElementById('rPeriod').addEventListener('change', e => {
-    document.getElementById('customDates').style.display = e.target.value === 'custom' ? 'block' : 'none';
-  });
+      function toLocalISO(dateObj) {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
 
-  async function generateReport() {
-    const period = document.getElementById('rPeriod').value;
-    const cat = document.getElementById('rCategory').value;
-    const p = new URLSearchParams({ ordering: '-date' });
-    if (period === 'custom') {
-      const f = document.getElementById('rFrom').value;
-      const t = document.getElementById('rTo').value;
-      if (f) p.set('date_from', f);
-      if (t) p.set('date_to', t);
-    } else {
-      p.set('period', period);
-    }
-    if (cat) p.set('category', cat);
+      function formatCleanTitle(rawTitle) {
+        return String(rawTitle || '')
+          .replace(/\s*\(\d{4}-\d{2}-\d{2}\)\s*$/, '')
+          .trim();
+      }
 
-    try {
-      reportData = await api.getAll(`/expenses/?${p}`);
-      renderReport(period);
-    } catch (e) { Toast.error('Failed to generate: ' + e.message); }
-  }
+      await CategoryLoader.populateSelect(document.getElementById('repCategory'), 'All Categories');
 
-  function renderReport(period) {
-    const labels = { week: 'Last 7 Days', month: 'Last 30 Days', quarter: 'Last 90 Days', year: 'This Year', custom: 'Custom Range' };
-    document.getElementById('reportTitle').textContent = `Expense Report — ${labels[period] || period}`;
-    document.getElementById('reportSub').textContent = `${reportData.length} transactions`;
-    document.getElementById('reportDate').textContent = `Generated ${new Date().toLocaleDateString()}`;
+      /* ── QUICK DATE PRESETS ── */
+      document.querySelectorAll('#presetPills .preset-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#presetPills .preset-pill').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
 
-    const total = reportData.reduce((s, e) => s + parseFloat(e.amount || 0), 0);
-    const count = reportData.length;
-    document.getElementById('rkTotal').textContent = Utils.formatCurrency(total);
-    document.getElementById('rkCount').textContent = count;
-    document.getElementById('rkAvg').textContent = count ? Utils.formatCurrency(total / count) : '—';
+          const preset = btn.dataset.preset;
+          const now = new Date();
+          const toIso = toLocalISO(now);
+          let fromIso = '';
 
-    const byCat = {};
-    reportData.forEach(e => {
-      const name = e.category_name || 'Uncategorized';
-      if (!byCat[name]) byCat[name] = { total: 0, count: 0, color: e.category_color || '#6366f1' };
-      byCat[name].total += parseFloat(e.amount || 0);
-      byCat[name].count++;
+          if (preset === 'month') {
+            fromIso = toLocalISO(new Date(now.getFullYear(), now.getMonth(), 1));
+          } else if (preset === '30d') {
+            const d = new Date(now);
+            d.setDate(d.getDate() - 29);
+            fromIso = toLocalISO(d);
+          } else if (preset === '90d') {
+            const d = new Date(now);
+            d.setDate(d.getDate() - 89);
+            fromIso = toLocalISO(d);
+          } else if (preset === 'ytd') {
+            fromIso = `${now.getFullYear()}-01-01`;
+          }
+
+          document.getElementById('repFrom').value = fromIso;
+          document.getElementById('repTo').value = preset === 'all' ? '' : toIso;
+          buildStatement();
+        });
+      });
+
+      ['repFrom', 'repTo', 'repCategory', 'repChannel'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => {
+          if (id === 'repFrom' || id === 'repTo') {
+            document.querySelectorAll('#presetPills .preset-pill').forEach(b => b.classList.remove('active'));
+          }
+          buildStatement();
+        });
+      });
+
+      function buildStatement() {
+        const from = document.getElementById('repFrom').value;
+        const to = document.getElementById('repTo').value;
+        const cat = document.getElementById('repCategory').value;
+        const channel = document.getElementById('repChannel').value;
+
+        reportRows = allExpenses
+          .filter(e => {
+            const d = String(e.date || '').slice(0, 10);
+            if (from && d < from) return false;
+            if (to && d > to) return false;
+            if (cat && String(e.category) !== String(cat)) return false;
+            if (channel && (e.payment_method || '').toLowerCase() !== channel) return false;
+            return true;
+          })
+          .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+
+        const total = reportRows.reduce((s, e) => s + (parseFloat(e.amount || 0) || 0), 0);
+        const user = auth.user;
+        const holder = [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.username || 'Account Holder';
+
+        document.getElementById('stmtPeriodHeading').textContent =
+          from || to
+            ? `${from ? Utils.formatDate(from) : 'Beginning'} — ${to ? Utils.formatDate(to) : 'Present'}`
+            : 'All Recorded Transactions';
+        document.getElementById('stmtGeneratedMeta').textContent =
+          `Prepared for ${holder} · Generated ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+        document.getElementById('stmtTotalAmount').textContent = Utils.formatCurrency(total);
+        document.getElementById('stmtCountMeta').textContent = `${reportRows.length} matching transaction${reportRows.length === 1 ? '' : 's'}`;
+
+        const byCat = {};
+        reportRows.forEach(e => {
+          const name = e.category_name || 'Uncategorized';
+          if (!byCat[name]) byCat[name] = { total: 0, color: e.category_color || '#7c3aed' };
+          byCat[name].total += parseFloat(e.amount || 0) || 0;
+        });
+        const sortedCats = Object.entries(byCat).sort((a, b) => b[1].total - a[1].total);
+
+        const summaryEl = document.getElementById('stmtCategorySummary');
+        summaryEl.innerHTML = sortedCats.map(([name, info]) => {
+          const pct = total > 0 ? Math.round((info.total / total) * 100) : 0;
+          return `
+            <div class="cat-summary-item">
+              <div class="flex items-center gap-2" style="min-width:0;">
+                <span class="cat-dot" style="background:${Utils.escapeHtml(info.color)};"></span>
+                <span class="text-sm font-medium truncate">${Utils.escapeHtml(name)}</span>
+              </div>
+              <div class="text-right" style="flex-shrink:0;">
+                <div class="font-mono text-sm font-semibold">${Utils.formatCurrency(info.total)}</div>
+                <div class="text-xs text-muted">${pct}%</div>
+              </div>
+            </div>`;
+        }).join('');
+
+        const tbody = document.getElementById('stmtTbody');
+        if (!reportRows.length) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5">
+                <div class="empty-state" style="padding:36px 20px;">
+                  <i class="fa-solid fa-file-circle-question"></i>
+                  <div class="empty-state__title">No transactions match this report scope</div>
+                  <div class="empty-state__sub">Adjust the date range, category, or channel filters above.</div>
+                </div>
+              </td>
+            </tr>`;
+          return;
+        }
+
+        tbody.innerHTML = reportRows.map(e => {
+          const payKey = (e.payment_method || 'cash').toLowerCase();
+          return `
+            <tr>
+              <td class="text-sm text-muted" style="white-space:nowrap;">${Utils.formatDate(e.date)}</td>
+              <td>
+                <div class="font-medium">${Utils.escapeHtml(formatCleanTitle(e.title))}</div>
+                ${e.description ? `<div class="text-xs text-muted">${Utils.escapeHtml(e.description)}</div>` : ''}
+              </td>
+              <td><span class="badge badge--neutral">${Utils.escapeHtml(e.category_name || 'Uncategorized')}</span></td>
+              <td><span class="payment-chip">${Utils.escapeHtml(CHANNEL_LABELS[payKey] || payKey.toUpperCase())}</span></td>
+              <td class="text-right font-mono font-semibold">${Utils.formatCurrency(e.amount)}</td>
+            </tr>`;
+        }).join('');
+      }
+
+      /* ── EXPORT HANDLERS ── */
+      document.getElementById('exportCsvBtn').addEventListener('click', () => {
+        if (!reportRows.length) { Toast.warning('No rows in current report to export.'); return; }
+        const cell = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+        const csv = [
+          ['Date', 'Title', 'Category', 'Channel', 'Amount', 'Notes'].map(cell).join(','),
+          ...reportRows.map(e => [
+            String(e.date || '').slice(0, 10),
+            formatCleanTitle(e.title),
+            e.category_name || 'Uncategorized',
+            CHANNEL_LABELS[(e.payment_method || 'cash').toLowerCase()] || e.payment_method,
+            e.amount,
+            e.description || '',
+          ].map(cell).join(',')),
+        ].join('\n');
+        Utils.downloadFile(csv, `EMS_Statement_${Utils.todayISO()}.csv`, 'text/csv;charset=utf-8;');
+        Toast.success('CSV statement downloaded');
+      });
+
+      document.getElementById('exportExcelBtn').addEventListener('click', () => {
+        if (!reportRows.length) { Toast.warning('No rows in current report to export.'); return; }
+        const total = reportRows.reduce((s, e) => s + (parseFloat(e.amount || 0) || 0), 0);
+        const rowsHtml = reportRows.map(e => `
+          <tr>
+            <td>${Utils.escapeHtml(String(e.date || '').slice(0, 10))}</td>
+            <td>${Utils.escapeHtml(formatCleanTitle(e.title))}</td>
+            <td>${Utils.escapeHtml(e.category_name || 'Uncategorized')}</td>
+            <td>${Utils.escapeHtml(CHANNEL_LABELS[(e.payment_method || 'cash').toLowerCase()] || e.payment_method)}</td>
+            <td>${Number(e.amount || 0).toFixed(2)}</td>
+            <td>${Utils.escapeHtml(e.description || '')}</td>
+          </tr>`).join('');
+
+        const xlsContent = `
+          <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+          <head><meta charset="UTF-8"></head>
+          <body>
+            <table border="1">
+              <thead>
+                <tr><th colspan="6">EMS Financial Statement (${Utils.todayISO()}) — Total: ${Utils.formatCurrency(total)}</th></tr>
+                <tr><th>Date</th><th>Description</th><th>Category</th><th>Channel</th><th>Amount</th><th>Notes</th></tr>
+              </thead>
+              <tbody>${rowsHtml}</tbody>
+            </table>
+          </body>
+          </html>`;
+        Utils.downloadFile(xlsContent, `EMS_Statement_${Utils.todayISO()}.xls`, 'application/vnd.ms-excel');
+        Toast.success('Excel workbook downloaded');
+      });
+
+      document.getElementById('exportJsonBtn').addEventListener('click', () => {
+        if (!reportRows.length) { Toast.warning('No rows in current report to export.'); return; }
+        const total = reportRows.reduce((s, e) => s + (parseFloat(e.amount || 0) || 0), 0);
+        const payload = {
+          generated_at: new Date().toISOString(),
+          currency: Utils.getCurrency(),
+          total_amount: total,
+          transaction_count: reportRows.length,
+          transactions: reportRows.map(e => ({
+            date: String(e.date || '').slice(0, 10),
+            title: formatCleanTitle(e.title),
+            category: e.category_name || 'Uncategorized',
+            channel: e.payment_method,
+            amount: parseFloat(e.amount || 0),
+            notes: e.description || '',
+          })),
+        };
+        Utils.downloadFile(JSON.stringify(payload, null, 2), `EMS_Statement_${Utils.todayISO()}.json`, 'application/json');
+        Toast.success('JSON statement downloaded');
+      });
+
+      document.getElementById('exportPdfBtn').addEventListener('click', () => window.print());
+
+      try {
+        allExpenses = await api.getAll('/expenses/?ordering=-date');
+        buildStatement();
+      } catch (err) {
+        Toast.error('Failed to load report data: ' + err.message);
+      }
+
+      document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
     });
-    const sortedCats = Object.entries(byCat).sort((a, b) => b[1].total - a[1].total);
-    document.getElementById('rkTopCat').textContent = sortedCats[0]?.[0] || '—';
-
-    document.getElementById('catRows').innerHTML = sortedCats.length
-      ? sortedCats.map(([name, info]) => {
-          const share = total ? ((info.total / total) * 100).toFixed(1) : 0;
-          return `<div class="cat-row">
-            <span style="width:10px;height:10px;border-radius:3px;background:${info.color};flex-shrink:0"></span>
-            <span style="flex:1;font-weight:500">${Utils.escapeHtml(name)}</span>
-            <span style="color:var(--text-muted)">${info.count} txn</span>
-            <div style="width:80px;height:5px;background:var(--ink-100);border-radius:99px;overflow:hidden"><div style="width:${share}%;height:100%;background:${info.color}"></div></div>
-            <span style="font-family:var(--font-mono);font-weight:600;min-width:90px;text-align:right">${Utils.formatCurrency(info.total)}</span>
-          </div>`;
-        }).join('')
-      : '<div style="color:var(--text-muted);font-size:13px">No data in this period</div>';
-
-    document.getElementById('reportTableBody').innerHTML = reportData.length
-      ? reportData.map(e => `<tr>
-          <td>${Utils.formatDate(e.date)}</td>
-          <td>${Utils.escapeHtml(e.title)}</td>
-          <td>${Utils.escapeHtml(e.category_name || 'Uncategorized')}</td>
-          <td style="text-transform:capitalize">${e.payment_method}</td>
-          <td class="text-right" style="font-family:var(--font-mono);font-weight:600;color:var(--danger)">${Utils.formatCurrency(e.amount)}</td>
-        </tr>`).join('')
-      : '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px">No transactions in this period</td></tr>';
-  }
-
-  function exportCsv(ext = 'csv') {
-    if (!reportData.length) { Toast.warning('Generate a report first.'); return; }
-    const cell = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
-    const csv = [
-      ['Date', 'Title', 'Category', 'Amount', 'Payment', 'Tags', 'Location', 'Receipt Note', 'Description'].map(cell).join(','),
-      ...reportData.map(e => [
-        e.date,
-        e.title,
-        e.category_name,
-        e.amount,
-        e.payment_method,
-        (e.tags_detail || []).map(t => t.name).join('; '),
-        e.location,
-        e.receipt_note,
-        e.description,
-      ].map(cell).join(',')),
-    ].join('\n');
-    Utils.downloadFile(csv, `ems_report_${new Date().toISOString().split('T')[0]}.${ext}`, 'text/csv');
-    Toast.success(`Exported ${ext.toUpperCase()}!`);
-  }
-
-  document.getElementById('generateBtn').addEventListener('click', generateReport);
-  document.getElementById('expCsv').addEventListener('click', () => exportCsv('csv'));
-  document.getElementById('expExcel').addEventListener('click', () => exportCsv('xls'));
-  document.getElementById('expJson').addEventListener('click', () => {
-    if (!reportData.length) { Toast.warning('Generate a report first.'); return; }
-    Utils.downloadFile(JSON.stringify(reportData, null, 2), `ems_report_${new Date().toISOString().split('T')[0]}.json`, 'application/json');
-    Toast.success('Exported JSON!');
-  });
-  document.getElementById('expPrint').addEventListener('click', () => window.print());
-  document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
-
-  await CategoryLoader.populateSelect(document.getElementById('rCategory'), 'All Categories');
-  generateReport();
-});
-</script>
+  </script>
 </body>
 </html>

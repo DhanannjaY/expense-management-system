@@ -1,343 +1,579 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Budgets — EMS</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="assets/css/main.css">
-<style>
-.budget-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px; }
-.budget-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:22px; transition:all 0.2s; position:relative; overflow:hidden; }
-.budget-card:hover { box-shadow:var(--shadow-md); }
-.budget-card--over { border-color:rgba(244,63,94,0.35); }
-.budget-card--warning { border-color:rgba(245,158,11,0.35); }
-.budget-card__top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
-.budget-card__icon { width:42px; height:42px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
-.budget-card__cat { font-size:16px; font-weight:600; }
-.budget-card__period { font-size:12px; color:var(--text-muted); text-transform:capitalize; }
-.budget-card__actions { display:flex; gap:4px; flex-shrink:0; }
-.budget-card__amounts { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
-.budget-card__spent { font-size:22px; font-weight:700; font-family:var(--font-mono); letter-spacing:-0.5px; }
-.budget-card__limit { font-size:13px; color:var(--text-muted); font-family:var(--font-mono); }
-.budget-card__bar { height:8px; background:var(--ink-100); border-radius:var(--radius-full); overflow:hidden; margin-bottom:12px; }
-.budget-card__fill { height:100%; border-radius:var(--radius-full); transition:width 0.6s ease; }
-.budget-card__footer { display:flex; align-items:center; justify-content:space-between; font-size:12px; color:var(--text-muted); }
-.status-tag { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:var(--radius-full); font-size:11px; font-weight:600; }
-.status-tag--safe { background:var(--success-bg); color:var(--success); }
-.status-tag--warning { background:var(--warning-bg); color:var(--warning); }
-.status-tag--over { background:var(--danger-bg); color:var(--danger); }
-.overview-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
-.ov-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:16px 20px; }
-.ov-card__label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); }
-.ov-card__val { font-size:22px; font-weight:700; font-family:var(--font-mono); letter-spacing:-0.5px; margin-top:4px; }
-@media (max-width:768px) { .overview-row { grid-template-columns:1fr 1fr; } }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Budgets — Expense Management System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <style>
+    .budget-controls {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-xs);
+    }
+    .filter-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .filter-pill {
+      padding: 5px 13px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-base);
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .filter-pill:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+    .filter-pill.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+
+    .budget-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px 22px;
+      box-shadow: var(--shadow-xs);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      position: relative;
+      overflow: hidden;
+      transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+    }
+    .budget-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: var(--card-accent, var(--accent));
+    }
+    .budget-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-strong);
+    }
+    .budget-card__head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .budget-card__icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .budget-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+    }
+    .budget-metrics__lbl {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .budget-metrics__val {
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .budget-card__footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+  </style>
 </head>
 <body>
-<div class="layout">
-  <aside class="sidebar">
-    <a href="dashboard.html" class="sidebar__brand">
-      <div class="sidebar__brand-icon">💰</div>
-      <div>
-        <div class="sidebar__brand-name">EMS</div>
-        <div class="sidebar__brand-sub">Finance Manager</div>
-      </div>
-    </a>
-    <nav class="sidebar__nav">
-      <div class="nav-section">
-        <div class="nav-section-label">Main</div>
-        <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
-        <a href="expenses.html" class="nav-link"><i class="fa-solid fa-receipt"></i> Expenses</a>
-        <a href="budget.html" class="nav-link active"><i class="fa-solid fa-chart-pie"></i> Budgets</a>
-        <a href="savings.html" class="nav-link"><i class="fa-solid fa-piggy-bank"></i> Savings</a>
-      </div>
-      <div class="nav-section">
-        <div class="nav-section-label">Insights</div>
-        <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> Analytics</a>
-        <a href="reports.html" class="nav-link"><i class="fa-solid fa-file-arrow-down"></i> Reports</a>
-      </div>
-      <div class="nav-section">
-        <div class="nav-section-label">Account</div>
-        <a href="settings.html" class="nav-link"><i class="fa-solid fa-gear"></i> Settings</a>
-      </div>
-    </nav>
-    <div class="sidebar__footer">
-      <div class="user-chip">
-        <div class="user-avatar" id="sidebarAvatar">?</div>
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <a href="dashboard.html" class="sidebar__brand">
+        <div class="sidebar__brand-icon"><i class="fa-solid fa-wallet"></i></div>
         <div>
-          <div class="user-name" id="sidebarName">Loading…</div>
-          <div class="user-role">Personal Account</div>
+          <div class="sidebar__brand-name">EMS</div>
+          <div class="sidebar__brand-sub">Finance Manager</div>
         </div>
-      </div>
-    </div>
-  </aside>
+      </a>
 
-  <div class="main">
-    <header class="topbar">
-      <div class="topbar__left"><div class="topbar__title">Budgets</div></div>
-      <div class="topbar__right">
-        <button class="btn btn--primary btn--sm" id="addBudgetBtn"><i class="fa-solid fa-plus"></i> New Budget</button>
-        <button class="btn btn--ghost btn--sm" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i></button>
-      </div>
-    </header>
-
-    <div class="page">
-      <div class="overview-row">
-        <div class="ov-card">
-          <div class="ov-card__label">Total Budget</div>
-          <div class="ov-card__val" id="ovBudget">—</div>
+      <nav class="sidebar__nav">
+        <div class="nav-section">
+          <div class="nav-section-label">Overview</div>
+          <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></a>
+          <a href="expenses.html" class="nav-link"><i class="fa-solid fa-receipt"></i><span>Expenses</span></a>
+          <a href="budget.html" class="nav-link active"><i class="fa-solid fa-bullseye"></i><span>Budgets</span></a>
+          <a href="savings.html" class="nav-link"><i class="fa-solid fa-piggy-bank"></i><span>Savings Goals</span></a>
         </div>
-        <div class="ov-card">
-          <div class="ov-card__label">Total Spent</div>
-          <div class="ov-card__val" id="ovSpent" style="color:var(--danger)">—</div>
+        <div class="nav-section">
+          <div class="nav-section-label">Insights</div>
+          <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line"></i><span>Analytics &amp; AI</span></a>
+          <a href="reports.html" class="nav-link"><i class="fa-solid fa-file-export"></i><span>Reports</span></a>
         </div>
-        <div class="ov-card">
-          <div class="ov-card__label">Remaining</div>
-          <div class="ov-card__val" id="ovRemain" style="color:var(--success)">—</div>
+        <div class="nav-section">
+          <div class="nav-section-label">Account</div>
+          <a href="settings.html" class="nav-link"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
         </div>
-        <div class="ov-card">
-          <div class="ov-card__label">Active Budgets</div>
-          <div class="ov-card__val" id="ovCount">—</div>
-        </div>
-      </div>
+      </nav>
 
-      <div id="budgetGrid" class="budget-grid">
-        <div class="empty-state" style="grid-column:1/-1;padding:60px 0"><div class="spinner"></div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Add/Edit Budget Modal -->
-<div class="modal-overlay" id="budgetModal">
-  <div class="modal" style="max-width:440px">
-    <div class="modal__header">
-      <h3 class="modal__title" id="budgetModalTitle">Create Budget</h3>
-      <button class="modal__close" id="closeBudgetModal">✕</button>
-    </div>
-    <div class="modal__body">
-      <input type="hidden" id="editBudgetId">
-      <div class="form-group">
-        <label class="form-label form-label--required">Category</label>
-        <select class="form-control" id="bCategory"><option value="">Select…</option></select>
-        <span class="form-error" id="bCategoryErr"></span>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="form-group">
-          <label class="form-label form-label--required" id="bAmountLabel">Amount</label>
-          <input class="form-control" id="bAmount" type="number" min="1" step="0.01" placeholder="10000">
-          <span class="form-error" id="bAmountErr"></span>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Period</label>
-          <select class="form-control" id="bPeriod">
-            <option value="weekly">Weekly</option>
-            <option value="monthly" selected>Monthly</option>
-            <option value="yearly">Yearly</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Alert Threshold: <strong id="threshLabel">80%</strong></label>
-        <input type="range" id="bThreshold" min="50" max="100" value="80" step="5" style="width:100%;accent-color:var(--accent)">
-        <span class="form-hint">You'll be warned when spending reaches this percentage</span>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Notes</label>
-        <textarea class="form-control" id="bNotes" rows="2" placeholder="Optional notes…" maxlength="500"></textarea>
-      </div>
-    </div>
-    <div class="modal__footer">
-      <button class="btn btn--ghost" id="cancelBudgetModal">Cancel</button>
-      <button class="btn btn--primary" id="saveBudgetBtn"><i class="fa-solid fa-floppy-disk"></i> Save</button>
-    </div>
-  </div>
-</div>
-
-<script src="core.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', async () => {
-  const { api, auth, Toast, Utils, Loader, CategoryLoader } = window.AppCore;
-  const ok = await window.requireAuth();
-  if (!ok) return;
-
-  const u = auth.user;
-  if (u) {
-    document.getElementById('sidebarName').textContent = u.name || u.username;
-    document.getElementById('sidebarAvatar').textContent = (u.first_name?.[0] || u.username?.[0] || '?').toUpperCase();
-  }
-  document.getElementById('bAmountLabel').textContent = `Amount (${Utils.getCurrencySymbol()})`;
-
-  let budgets = [];
-
-  async function loadBudgets() {
-    try {
-      budgets = await api.get('/budgets/analysis/', false);
-      if (!Array.isArray(budgets)) budgets = [];
-      renderOverview();
-      renderCards();
-    } catch (e) {
-      Toast.error('Failed to load budgets: ' + e.message);
-      document.getElementById('budgetGrid').innerHTML =
-        `<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-circle-exclamation"></i><div class="empty-state__title">Failed to load</div></div>`;
-    }
-  }
-
-  function renderOverview() {
-    const totalB = budgets.reduce((s, b) => s + b.budget_amount, 0);
-    const totalS = budgets.reduce((s, b) => s + b.spent_amount, 0);
-    const remain = Math.max(0, totalB - totalS);
-    document.getElementById('ovBudget').textContent = Utils.formatCurrency(totalB);
-    document.getElementById('ovSpent').textContent = Utils.formatCurrency(totalS);
-    document.getElementById('ovRemain').textContent = Utils.formatCurrency(remain);
-    document.getElementById('ovCount').textContent = budgets.length;
-  }
-
-  function renderCards() {
-    const grid = document.getElementById('budgetGrid');
-    if (!budgets.length) {
-      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;padding:60px 0">
-        <i class="fa-solid fa-chart-pie" style="font-size:48px"></i>
-        <div class="empty-state__title">No budgets yet</div>
-        <div class="empty-state__sub">Set spending limits by category to stay on track</div>
-      </div>`;
-      return;
-    }
-    grid.innerHTML = budgets.map(b => {
-      const pct = Math.min(b.percentage_used, 100);
-      const isOver = b.status === 'over';
-      const isWarn = b.status === 'warning';
-      const barColor = isOver ? '#f43f5e' : isWarn ? '#f59e0b' : '#10b981';
-      const catColor = b.category_color || '#6366f1';
-      const statusTag = isOver
-        ? `<span class="status-tag status-tag--over"><i class="fa-solid fa-triangle-exclamation"></i> Over Budget</span>`
-        : isWarn
-        ? `<span class="status-tag status-tag--warning"><i class="fa-solid fa-bell"></i> Near Limit</span>`
-        : `<span class="status-tag status-tag--safe"><i class="fa-solid fa-check"></i> On Track</span>`;
-      const remain = Math.max(0, b.budget_amount - b.spent_amount);
-
-      return `<div class="budget-card ${isOver ? 'budget-card--over' : isWarn ? 'budget-card--warning' : ''}">
-        <div class="budget-card__top">
-          <div style="display:flex;align-items:center;gap:12px">
-            <div class="budget-card__icon" style="background:${catColor}18;color:${catColor}">
-              <i class="fa-solid fa-${Utils.safeIcon(b.category_icon)}"></i>
-            </div>
-            <div>
-              <div class="budget-card__cat">${Utils.escapeHtml(b.category)}</div>
-              <div class="budget-card__period">${b.period} budget</div>
-            </div>
-          </div>
-          <div class="budget-card__actions">
-            <button class="btn btn--ghost btn--icon btn--sm edit-budget-btn" data-id="${b.id}" title="Edit"><i class="fa-solid fa-pen" style="font-size:12px"></i></button>
-            <button class="btn btn--ghost btn--icon btn--sm del-budget-btn" data-id="${b.id}" title="Delete"><i class="fa-solid fa-trash-can" style="font-size:12px;color:var(--danger)"></i></button>
+      <div class="sidebar__footer">
+        <div class="user-chip" onclick="location.href='settings.html'">
+          <div class="user-avatar" id="sidebarAvatar">U</div>
+          <div style="min-width:0;flex:1;">
+            <div class="user-name truncate" id="sidebarUserName">User</div>
+            <div class="user-role truncate" id="sidebarUserEmail">Personal Account</div>
           </div>
         </div>
-        <div class="budget-card__amounts">
-          <span class="budget-card__spent" style="color:${barColor}">${Utils.formatCurrency(b.spent_amount)}</span>
-          <span class="budget-card__limit">/ ${Utils.formatCurrency(b.budget_amount)}</span>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar__left">
+          <div>
+            <div class="topbar__title">Budget Guardrails</div>
+            <div class="topbar__sub">Set category spending caps and monitor utilization thresholds</div>
+          </div>
         </div>
-        <div class="budget-card__bar"><div class="budget-card__fill" style="width:${pct}%;background:${barColor}"></div></div>
-        <div class="budget-card__footer">
-          ${statusTag}
-          <span>${isOver ? `Over by ${Utils.formatCurrency(b.spent_amount - b.budget_amount)}` : `${Utils.formatCurrency(remain)} left`}</span>
+        <div class="topbar__right">
+          <button type="button" class="btn btn--primary btn--sm" id="newBudgetBtn">
+            <i class="fa-solid fa-plus"></i><span>New Budget</span>
+          </button>
+          <button type="button" class="btn btn--ghost btn--icon btn--sm" id="logoutBtn" title="Sign out">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
         </div>
-      </div>`;
-    }).join('');
+      </header>
 
-    document.querySelectorAll('.edit-budget-btn').forEach(btn => btn.addEventListener('click', () => openEdit(parseInt(btn.dataset.id, 10))));
-    document.querySelectorAll('.del-budget-btn').forEach(btn => btn.addEventListener('click', () => deleteBudget(parseInt(btn.dataset.id, 10))));
-  }
+      <main class="page">
+        <!-- SUMMARY KPIs -->
+        <section class="stats-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));">
+          <div class="stat-card">
+            <div class="kpi-icon-row">
+              <span class="stat-card__label">Total Budget Cap</span>
+              <span class="kpi-badge-icon" style="background:var(--accent-light);color:var(--accent);">
+                <i class="fa-solid fa-bullseye"></i>
+              </span>
+            </div>
+            <div class="stat-card__value" id="budTotalLimit">—</div>
+            <div class="stat-card__delta stat-card__delta--neutral" id="budActiveCount">0 active guardrails</div>
+          </div>
 
-  const modal = document.getElementById('budgetModal');
-  function closeModal() { modal.classList.remove('open'); }
-  document.getElementById('closeBudgetModal').addEventListener('click', closeModal);
-  document.getElementById('cancelBudgetModal').addEventListener('click', closeModal);
-  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+          <div class="stat-card">
+            <div class="kpi-icon-row">
+              <span class="stat-card__label">Total Utilized</span>
+              <span class="kpi-badge-icon" style="background:var(--warning-bg);color:var(--amber-600);">
+                <i class="fa-solid fa-fire-flame-curved"></i>
+              </span>
+            </div>
+            <div class="stat-card__value" id="budTotalSpent">—</div>
+            <div class="stat-card__delta stat-card__delta--neutral" id="budUtilPct">0% of combined limit</div>
+          </div>
 
-  document.getElementById('bThreshold').addEventListener('input', e => {
-    document.getElementById('threshLabel').textContent = e.target.value + '%';
-  });
+          <div class="stat-card">
+            <div class="kpi-icon-row">
+              <span class="stat-card__label">Remaining Headroom</span>
+              <span class="kpi-badge-icon" style="background:var(--success-bg);color:var(--emerald-600);">
+                <i class="fa-solid fa-shield-halved"></i>
+              </span>
+            </div>
+            <div class="stat-card__value" id="budTotalLeft">—</div>
+            <div class="stat-card__delta stat-card__delta--neutral" id="budAlertSummary">All budgets within limits</div>
+          </div>
+        </section>
 
-  function openAdd() {
-    document.getElementById('editBudgetId').value = '';
-    document.getElementById('budgetModalTitle').textContent = 'Create Budget';
-    document.getElementById('bCategory').value = '';
-    document.getElementById('bCategory').disabled = false;
-    document.getElementById('bAmount').value = '';
-    document.getElementById('bPeriod').value = 'monthly';
-    document.getElementById('bPeriod').disabled = false;
-    document.getElementById('bThreshold').value = 80;
-    document.getElementById('threshLabel').textContent = '80%';
-    document.getElementById('bNotes').value = '';
-    ['bCategoryErr', 'bAmountErr'].forEach(id => document.getElementById(id).textContent = '');
-    modal.classList.add('open');
-  }
+        <!-- FILTER & SORT TOOLBAR -->
+        <section class="budget-controls">
+          <div class="filter-pills" id="budgetFilterTabs">
+            <button type="button" class="filter-pill active" data-filter="all">All Budgets</button>
+            <button type="button" class="filter-pill" data-filter="healthy">On Track</button>
+            <button type="button" class="filter-pill" data-filter="warning">Near Limit</button>
+            <button type="button" class="filter-pill" data-filter="exceeded">Exceeded</button>
+          </div>
 
-  async function openEdit(id) {
-    try {
-      const b = await api.get(`/budgets/${id}/`, false);
-      document.getElementById('editBudgetId').value = b.id;
-      document.getElementById('budgetModalTitle').textContent = 'Edit Budget';
-      document.getElementById('bCategory').value = b.category;
-      document.getElementById('bCategory').disabled = true;
-      document.getElementById('bAmount').value = parseFloat(b.amount);
-      document.getElementById('bPeriod').value = b.period;
-      document.getElementById('bPeriod').disabled = true;
-      document.getElementById('bThreshold').value = b.alert_threshold;
-      document.getElementById('threshLabel').textContent = b.alert_threshold + '%';
-      document.getElementById('bNotes').value = b.notes || '';
-      ['bCategoryErr', 'bAmountErr'].forEach(elId => document.getElementById(elId).textContent = '');
-      modal.classList.add('open');
-    } catch (e) { Toast.error(e.message); }
-  }
+          <div class="flex items-center gap-2">
+            <label for="budgetSortSelect" class="text-xs text-muted">Sort by:</label>
+            <select id="budgetSortSelect" class="form-control" style="width:auto;padding:6px 12px;font-size:13px;">
+              <option value="pct_desc">Highest Utilization</option>
+              <option value="limit_desc">Largest Cap</option>
+              <option value="name_asc">Category (A–Z)</option>
+            </select>
+          </div>
+        </section>
 
-  document.getElementById('saveBudgetBtn').addEventListener('click', async () => {
-    const btn = document.getElementById('saveBudgetBtn');
-    const id = document.getElementById('editBudgetId').value;
-    const cat = document.getElementById('bCategory').value;
-    const amt = parseFloat(document.getElementById('bAmount').value);
-    const period = document.getElementById('bPeriod').value;
-    const thresh = parseInt(document.getElementById('bThreshold').value, 10);
-    const notes = document.getElementById('bNotes').value.trim();
+        <!-- BUDGET CARDS GRID -->
+        <section class="grid grid-3" id="budgetsGrid">
+          <div class="skeleton-card"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+          <div class="skeleton-card"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+          <div class="skeleton-card"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+        </section>
+      </main>
+    </div>
+  </div>
 
-    let valid = true;
-    const setErr = (elId, msg) => { document.getElementById(elId).textContent = msg; if (msg) valid = false; };
-    if (!id) setErr('bCategoryErr', cat ? '' : 'Category is required.');
-    setErr('bAmountErr', amt > 0 ? '' : 'Valid amount required.');
-    if (!valid) return;
+  <!-- CREATE / EDIT BUDGET MODAL -->
+  <div class="modal-overlay" id="budgetModal" role="dialog" aria-modal="true">
+    <div class="modal" style="max-width:460px;">
+      <div class="modal__header">
+        <h3 class="modal__title" id="budModalTitle">Create Budget Guardrail</h3>
+        <button type="button" class="modal__close" id="closeBudModal">&times;</button>
+      </div>
+      <form id="budgetForm">
+        <input type="hidden" id="budId" />
+        <div class="modal__body">
+          <div class="form-group">
+            <label class="form-label form-label--required" for="budCategory">Category</label>
+            <select class="form-control" id="budCategory" required></select>
+          </div>
+          <div class="grid grid-2">
+            <div class="form-group">
+              <label class="form-label form-label--required" for="budAmount">Spending Limit</label>
+              <input type="number" step="0.01" min="1" class="form-control font-mono" id="budAmount" placeholder="10000" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="budPeriod">Cycle Period</label>
+              <select class="form-control" id="budPeriod">
+                <option value="monthly">Monthly</option>
+                <option value="weekly">Weekly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" for="budThreshold">Warning Alert Threshold (%)</label>
+            <input type="number" min="50" max="100" class="form-control font-mono" id="budThreshold" value="80" />
+            <div class="form-hint">Highlights the guardrail in amber once utilization crosses this percentage.</div>
+          </div>
+        </div>
+        <div class="modal__footer">
+          <button type="button" class="btn btn--ghost" id="cancelBudModal">Cancel</button>
+          <button type="submit" class="btn btn--primary" id="saveBudBtn">
+            <i class="fa-solid fa-check"></i><span>Save Budget</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-    Loader.showBtn(btn);
-    try {
-      if (id) {
-        await api.patch(`/budgets/${id}/`, { amount: amt, alert_threshold: thresh, notes });
-        Toast.success('Budget updated!');
-      } else {
-        await api.post('/budgets/', { category: parseInt(cat, 10), amount: amt, period, alert_threshold: thresh, notes, is_active: true });
-        Toast.success('Budget created!');
+  <script src="core.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { api, auth, ConfirmModal, Toast, Utils, Loader, CategoryLoader } = window.AppCore;
+      if (!(await window.requireAuth())) return;
+
+      let budgets = [];
+      let expenses = [];
+      let categories = [];
+      let activeFilter = 'all';
+      let activeSort = 'pct_desc';
+
+      categories = await CategoryLoader.populateSelect(document.getElementById('budCategory'), 'Choose category');
+
+      const modal = document.getElementById('budgetModal');
+      function openModal(item = null) {
+        document.getElementById('budModalTitle').textContent = item ? 'Edit Budget Guardrail' : 'Create Budget Guardrail';
+        document.getElementById('budId').value = item?.id || '';
+        document.getElementById('budCategory').value = item?.category || '';
+        document.getElementById('budAmount').value = item?.amount || '';
+        document.getElementById('budPeriod').value = item?.period || 'monthly';
+        document.getElementById('budThreshold').value = item?.alert_threshold || 80;
+        modal.classList.add('open');
+        setTimeout(() => document.getElementById('budCategory').focus(), 50);
       }
-      closeModal();
-      loadBudgets();
-    } catch (e) { Toast.error(e.message); }
-    finally { Loader.showBtn(btn, false); }
-  });
+      const closeModal = () => modal.classList.remove('open');
 
-  async function deleteBudget(id) {
-    if (!confirm('Delete this budget?')) return;
-    try {
-      await api.delete(`/budgets/${id}/`);
-      Toast.success('Budget deleted.');
-      loadBudgets();
-    } catch (e) { Toast.error(e.message); }
-  }
+      document.getElementById('newBudgetBtn').addEventListener('click', () => openModal());
+      document.getElementById('closeBudModal').addEventListener('click', closeModal);
+      document.getElementById('cancelBudModal').addEventListener('click', closeModal);
+      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
-  document.getElementById('addBudgetBtn').addEventListener('click', openAdd);
-  document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
+      document.querySelectorAll('#budgetFilterTabs .filter-pill').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('#budgetFilterTabs .filter-pill').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          activeFilter = tab.dataset.filter;
+          renderBudgets();
+        });
+      });
 
-  await CategoryLoader.populateSelect(document.getElementById('bCategory'), 'Select category…');
-  loadBudgets();
-});
-</script>
+      document.getElementById('budgetSortSelect').addEventListener('change', e => {
+        activeSort = e.target.value;
+        renderBudgets();
+      });
+
+      document.getElementById('budgetForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const id = document.getElementById('budId').value;
+        const btn = document.getElementById('saveBudBtn');
+        Loader.showBtn(btn, true);
+
+        const payload = {
+          category: document.getElementById('budCategory').value,
+          amount: parseFloat(document.getElementById('budAmount').value),
+          period: document.getElementById('budPeriod').value,
+          alert_threshold: parseInt(document.getElementById('budThreshold').value || '80', 10),
+        };
+
+        try {
+          if (id) {
+            await api.put(`/budgets/${id}/`, payload);
+            Toast.success('Budget updated');
+          } else {
+            await api.post('/budgets/', payload);
+            Toast.success('Budget created');
+          }
+          closeModal();
+          await fetchData();
+        } catch (err) {
+          Toast.error(err.message);
+        } finally {
+          Loader.showBtn(btn, false);
+        }
+      });
+
+      function computeSpentForBudget(b) {
+        if (b.spent !== undefined && b.spent !== null && Number(b.spent) > 0) {
+          return parseFloat(b.spent) || 0;
+        }
+        const now = new Date();
+        const period = (b.period || 'monthly').toLowerCase();
+
+        return expenses
+          .filter(e => {
+            if (String(e.category) !== String(b.category)) return false;
+            const dStr = String(e.date || '').slice(0, 10);
+            if (!dStr) return false;
+            const [y, m, d] = dStr.split('-').map(Number);
+            const dt = new Date(y, (m || 1) - 1, d || 1);
+
+            if (period === 'yearly') return dt.getFullYear() === now.getFullYear();
+            if (period === 'weekly') {
+              const weekAgo = new Date(now);
+              weekAgo.setDate(now.getDate() - 7);
+              return dt >= weekAgo;
+            }
+            return dt.getFullYear() === now.getFullYear() && dt.getMonth() === now.getMonth();
+          })
+          .reduce((s, e) => s + (parseFloat(e.amount || 0) || 0), 0);
+      }
+
+      function renderBudgets() {
+        const enriched = budgets.map(b => {
+          const catObj = categories.find(c => String(c.id) === String(b.category));
+          const limit = Math.max(0, parseFloat(b.amount || 0) || 0);
+          const spent = computeSpentForBudget(b);
+          const threshold = parseInt(b.alert_threshold || 80, 10);
+          const rawPct = limit > 0 ? Math.round((spent / limit) * 100) : 0;
+          const status = rawPct >= 100 ? 'exceeded' : rawPct >= threshold ? 'warning' : 'healthy';
+
+          return {
+            ...b,
+            _catName: b.category_name || catObj?.name || 'Category Budget',
+            _catColor: b.category_color || catObj?.color || '#7c3aed',
+            _limit: limit,
+            _spent: spent,
+            _remaining: Math.max(0, limit - spent),
+            _overage: Math.max(0, spent - limit),
+            _threshold: threshold,
+            _rawPct: rawPct,
+            _barPct: Math.min(100, rawPct),
+            _status: status,
+          };
+        });
+
+        const totalLimit = enriched.reduce((s, b) => s + b._limit, 0);
+        const totalSpent = enriched.reduce((s, b) => s + b._spent, 0);
+        const totalLeft = Math.max(0, totalLimit - totalSpent);
+        const alertCount = enriched.filter(b => b._status !== 'healthy').length;
+        const utilPct = totalLimit > 0 ? Math.round((totalSpent / totalLimit) * 100) : 0;
+
+        document.getElementById('budTotalLimit').textContent = Utils.formatCurrency(totalLimit);
+        document.getElementById('budActiveCount').textContent = `${enriched.length} active guardrail${enriched.length === 1 ? '' : 's'}`;
+        document.getElementById('budTotalSpent').textContent = Utils.formatCurrency(totalSpent);
+        document.getElementById('budUtilPct').textContent = `${utilPct}% of combined limit`;
+        document.getElementById('budTotalLeft').textContent = Utils.formatCurrency(totalLeft);
+
+        const alertEl = document.getElementById('budAlertSummary');
+        if (alertCount > 0) {
+          alertEl.className = 'stat-card__delta stat-card__delta--down';
+          alertEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${alertCount} guardrail${alertCount === 1 ? '' : 's'} need attention`;
+        } else {
+          alertEl.className = 'stat-card__delta stat-card__delta--up';
+          alertEl.textContent = enriched.length ? 'All budgets within safe thresholds' : 'No budgets configured';
+        }
+
+        let visible = enriched;
+        if (activeFilter !== 'all') visible = visible.filter(b => b._status === activeFilter);
+
+        visible.sort((a, b) => {
+          if (activeSort === 'limit_desc') return b._limit - a._limit;
+          if (activeSort === 'name_asc') return a._catName.localeCompare(b._catName);
+          return b._rawPct - a._rawPct;
+        });
+
+        const grid = document.getElementById('budgetsGrid');
+        if (!enriched.length) {
+          grid.innerHTML = `
+            <div class="card" style="grid-column:1/-1;">
+              <div class="empty-state" style="padding:40px 20px;">
+                <i class="fa-solid fa-bullseye"></i>
+                <div class="empty-state__title">No budget guardrails yet</div>
+                <div class="empty-state__sub">Create monthly or weekly spending caps per category to prevent overspending.</div>
+                <button type="button" class="btn btn--primary btn--sm mt-2" onclick="document.getElementById('newBudgetBtn').click()">
+                  <i class="fa-solid fa-plus"></i> Create First Budget
+                </button>
+              </div>
+            </div>`;
+          return;
+        }
+
+        if (!visible.length) {
+          grid.innerHTML = `
+            <div class="card" style="grid-column:1/-1;">
+              <div class="empty-state" style="padding:36px 20px;">
+                <i class="fa-solid fa-filter"></i>
+                <div class="empty-state__title">No budgets in this status</div>
+                <div class="empty-state__sub">Switch the filter pills above to inspect your other guardrails.</div>
+              </div>
+            </div>`;
+          return;
+        }
+
+        grid.innerHTML = visible.map(b => {
+          const statusColor = b._status === 'exceeded' ? 'var(--danger)' : b._status === 'warning' ? 'var(--warning)' : b._catColor;
+          const badgeClass = b._status === 'exceeded' ? 'badge--danger' : b._status === 'warning' ? 'badge--warning' : 'badge--success';
+          const badgeLabel = b._status === 'exceeded' ? 'Exceeded' : b._status === 'warning' ? 'Near Limit' : 'On Track';
+          const periodLabel = (b.period || 'monthly').charAt(0).toUpperCase() + (b.period || 'monthly').slice(1);
+
+          return `
+            <article class="budget-card" style="--card-accent:${Utils.escapeHtml(statusColor)};">
+              <div class="budget-card__head">
+                <div class="flex items-center gap-3" style="min-width:0;">
+                  <div class="budget-card__icon" style="background:${Utils.escapeHtml(b._catColor)}18;color:${Utils.escapeHtml(b._catColor)};">
+                    <i class="fa-solid fa-bullseye"></i>
+                  </div>
+                  <div style="min-width:0;">
+                    <div class="font-semibold truncate" style="font-size:15.5px;">${Utils.escapeHtml(b._catName)}</div>
+                    <div class="text-xs text-muted mt-1">${periodLabel} cap &middot; Alert at ${b._threshold}%</div>
+                  </div>
+                </div>
+                <span class="badge ${badgeClass}">${badgeLabel}</span>
+              </div>
+
+              <div>
+                <div class="flex justify-between text-xs font-mono mb-1">
+                  <span class="text-muted">Utilization</span>
+                  <span class="font-semibold" style="color:${statusColor};">${b._rawPct}%</span>
+                </div>
+                <div class="progress progress--lg mb-2">
+                  <div class="progress__bar" style="width:${b._barPct}%;background:${statusColor};"></div>
+                </div>
+                <div class="budget-metrics">
+                  <div>
+                    <div class="budget-metrics__lbl">Spent / Cap</div>
+                    <div class="budget-metrics__val">${Utils.formatCurrency(b._spent)} <span class="text-xs text-muted">/ ${Utils.formatCurrency(b._limit)}</span></div>
+                  </div>
+                  <div class="text-right">
+                    <div class="budget-metrics__lbl">${b._status === 'exceeded' ? 'Over Cap' : 'Remaining'}</div>
+                    <div class="budget-metrics__val" style="color:${b._status === 'exceeded' ? 'var(--danger)' : 'var(--text-primary)'};">
+                      ${Utils.formatCurrency(b._status === 'exceeded' ? b._overage : b._remaining)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="budget-card__footer">
+                <span class="text-xs text-muted">Guardrail #${b.id}</span>
+                <div class="flex gap-1">
+                  <button type="button" class="btn btn--ghost btn--icon btn--sm edit-bud" data-id="${b.id}" title="Edit budget">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button type="button" class="btn btn--danger btn--icon btn--sm del-bud" data-id="${b.id}" title="Delete budget">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </article>`;
+        }).join('');
+
+        grid.querySelectorAll('.edit-bud').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const item = budgets.find(x => String(x.id) === btn.dataset.id);
+            if (item) openModal(item);
+          });
+        });
+
+        grid.querySelectorAll('.del-bud').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const item = enriched.find(x => String(x.id) === btn.dataset.id);
+            const ok = await ConfirmModal.ask({
+              title: 'Delete Budget Guardrail',
+              message: `Remove the budget limit for "${item?._catName || 'this category'}"?`,
+              confirmText: 'Delete',
+            });
+            if (!ok) return;
+
+            try {
+              await api.delete(`/budgets/${btn.dataset.id}/`);
+              Toast.success('Budget deleted');
+              await fetchData();
+            } catch (err) {
+              Toast.error(err.message);
+            }
+          });
+        });
+      }
+
+      async function fetchData() {
+        try {
+          const [budRes, expRes] = await Promise.all([
+            api.getAll('/budgets/'),
+            api.getAll('/expenses/').catch(() => []),
+          ]);
+          budgets = budRes;
+          expenses = expRes;
+          renderBudgets();
+        } catch (err) {
+          Toast.error('Failed to load budgets: ' + err.message);
+        }
+      }
+
+      document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
+      await fetchData();
+    });
+  </script>
 </body>
 </html>

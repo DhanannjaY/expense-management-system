@@ -1,382 +1,676 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Analytics — EMS</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="assets/css/main.css">
-<style>
-.period-tabs { display:flex; gap:4px; background:var(--ink-100); padding:4px; border-radius:var(--radius); width:fit-content; }
-.period-tab { padding:6px 14px; border:none; border-radius:7px; background:transparent; color:var(--text-secondary); font-size:13px; font-weight:500; cursor:pointer; transition:all 0.15s; font-family:var(--font-sans); }
-.period-tab.active { background:var(--bg-card); color:var(--text-primary); box-shadow:var(--shadow-sm); }
-.chart-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:20px 24px; }
-.chart-card__header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
-.chart-card__title { font-size:14px; font-weight:600; }
-.chart-card__sub { font-size:12px; color:var(--text-muted); }
-.ml-card { background:linear-gradient(135deg, #1e1133 0%, #3b1a6e 100%); border-radius:var(--radius-lg); padding:24px 28px; color:white; }
-.ml-card__badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.6px; background:rgba(255,255,255,0.12); padding:4px 10px; border-radius:var(--radius-full); margin-bottom:12px; }
-.ml-card__pred { font-size:32px; font-weight:700; font-family:var(--font-mono); letter-spacing:-1px; }
-.ml-card__sub { font-size:13px; color:rgba(255,255,255,0.65); margin-top:4px; }
-.ml-meta { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:18px; padding-top:18px; border-top:1px solid rgba(255,255,255,0.1); }
-.ml-meta__item label { font-size:11px; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.5px; }
-.ml-meta__item value { display:block; font-size:15px; font-weight:600; font-family:var(--font-mono); margin-top:2px; }
-.insight-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; display:flex; align-items:center; gap:14px; }
-.insight-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
-.insight-title { font-size:13px; font-weight:600; }
-.insight-desc { font-size:12px; color:var(--text-muted); margin-top:2px; }
-.window-list { display:flex; flex-direction:column; gap:8px; margin-top:14px; }
-.window-row { display:flex; align-items:center; justify-content:space-between; font-size:12px; padding:8px 12px; background:rgba(255,255,255,0.06); border-radius:var(--radius-sm); }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics &amp; AI — Expense Management System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .card-head h2 {
+      font-size: 15.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .chart-box {
+      position: relative;
+      height: 275px;
+      width: 100%;
+    }
+    .insight-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .insight-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      display: flex;
+      gap: 13px;
+      align-items: flex-start;
+      box-shadow: var(--shadow-xs);
+    }
+    .insight-card__icon {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .insight-card__title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 3px;
+    }
+    .insight-card__desc {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .cat-rank-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .cat-rank-row:last-child { border-bottom: none; }
+    @media (max-width: 960px) {
+      .insight-grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-<div class="layout">
-  <aside class="sidebar">
-    <a href="dashboard.html" class="sidebar__brand">
-      <div class="sidebar__brand-icon">💰</div>
-      <div>
-        <div class="sidebar__brand-name">EMS</div>
-        <div class="sidebar__brand-sub">Finance Manager</div>
-      </div>
-    </a>
-    <nav class="sidebar__nav">
-      <div class="nav-section">
-        <div class="nav-section-label">Main</div>
-        <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
-        <a href="expenses.html" class="nav-link"><i class="fa-solid fa-receipt"></i> Expenses</a>
-        <a href="budget.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Budgets</a>
-        <a href="savings.html" class="nav-link"><i class="fa-solid fa-piggy-bank"></i> Savings</a>
-      </div>
-      <div class="nav-section">
-        <div class="nav-section-label">Insights</div>
-        <a href="analytics.html" class="nav-link active"><i class="fa-solid fa-chart-line"></i> Analytics</a>
-        <a href="reports.html" class="nav-link"><i class="fa-solid fa-file-arrow-down"></i> Reports</a>
-      </div>
-      <div class="nav-section">
-        <div class="nav-section-label">Account</div>
-        <a href="settings.html" class="nav-link"><i class="fa-solid fa-gear"></i> Settings</a>
-      </div>
-    </nav>
-    <div class="sidebar__footer">
-      <div class="user-chip">
-        <div class="user-avatar" id="sidebarAvatar">?</div>
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <a href="dashboard.html" class="sidebar__brand">
+        <div class="sidebar__brand-icon"><i class="fa-solid fa-wallet"></i></div>
         <div>
-          <div class="user-name" id="sidebarName">Loading…</div>
-          <div class="user-role">Personal Account</div>
+          <div class="sidebar__brand-name">EMS</div>
+          <div class="sidebar__brand-sub">Finance Manager</div>
+        </div>
+      </a>
+
+      <nav class="sidebar__nav">
+        <div class="nav-section">
+          <div class="nav-section-label">Overview</div>
+          <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></a>
+          <a href="expenses.html" class="nav-link"><i class="fa-solid fa-receipt"></i><span>Expenses</span></a>
+          <a href="budget.html" class="nav-link"><i class="fa-solid fa-bullseye"></i><span>Budgets</span></a>
+          <a href="savings.html" class="nav-link"><i class="fa-solid fa-piggy-bank"></i><span>Savings Goals</span></a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Insights</div>
+          <a href="analytics.html" class="nav-link active"><i class="fa-solid fa-chart-line"></i><span>Analytics &amp; AI</span></a>
+          <a href="reports.html" class="nav-link"><i class="fa-solid fa-file-export"></i><span>Reports</span></a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Account</div>
+          <a href="settings.html" class="nav-link"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+        </div>
+      </nav>
+
+      <div class="sidebar__footer">
+        <div class="user-chip" onclick="location.href='settings.html'">
+          <div class="user-avatar" id="sidebarAvatar">U</div>
+          <div style="min-width:0;flex:1;">
+            <div class="user-name truncate" id="sidebarUserName">User</div>
+            <div class="user-role truncate" id="sidebarUserEmail">Personal Account</div>
+          </div>
         </div>
       </div>
-    </div>
-  </aside>
+    </aside>
 
-  <div class="main">
-    <header class="topbar">
-      <div class="topbar__left"><div class="topbar__title">Analytics &amp; AI Insights</div></div>
-      <div class="topbar__right">
-        <div class="period-tabs">
-          <button class="period-tab active" data-period="week">7D</button>
-          <button class="period-tab" data-period="month">30D</button>
-          <button class="period-tab" data-period="quarter">90D</button>
-          <button class="period-tab" data-period="year">1Y</button>
+    <!-- MAIN -->
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar__left">
+          <div>
+            <div class="topbar__title">Analytics &amp; AI Forecast</div>
+            <div class="topbar__sub" id="analyticsSub">Linear regression spend projections &amp; behavioral patterns</div>
+          </div>
         </div>
-        <button class="btn btn--ghost btn--sm" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i></button>
-      </div>
-    </header>
+        <div class="topbar__right">
+          <div class="btn-group" id="analyticsWindowGroup">
+            <button type="button" class="btn btn--ghost btn--sm" data-days="7">7D</button>
+            <button type="button" class="btn btn--ghost btn--sm active" data-days="30">30D</button>
+            <button type="button" class="btn btn--ghost btn--sm" data-days="90">90D</button>
+            <button type="button" class="btn btn--ghost btn--sm" data-days="0">All</button>
+          </div>
+          <button type="button" class="btn btn--ghost btn--icon btn--sm" id="logoutBtn" title="Sign out">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </header>
 
-    <div class="page">
-      <div class="stats-grid mb-6">
-        <div class="stat-card"><div class="stat-card__label">Period Total</div><div class="stat-card__value" id="aTotal">—</div><div class="stat-card__delta stat-card__delta--neutral" id="aPeriodLabel">—</div></div>
-        <div class="stat-card"><div class="stat-card__label">Daily Average</div><div class="stat-card__value" id="aDailyAvg">—</div><div class="stat-card__delta stat-card__delta--neutral">Per calendar day</div></div>
-        <div class="stat-card"><div class="stat-card__label">Highest Single</div><div class="stat-card__value" id="aMaxSingle" style="color:var(--rose-600)">—</div><div class="stat-card__delta stat-card__delta--neutral">Peak transaction</div></div>
-        <div class="stat-card"><div class="stat-card__label">Spending Streak</div><div class="stat-card__value" id="aStreak" style="color:var(--accent)">—</div><div class="stat-card__delta stat-card__delta--neutral">Consecutive days</div></div>
-      </div>
-
-      <div class="grid grid-2 mb-6">
-        <div class="ml-card">
-          <div class="ml-card__badge"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Spending Forecast</div>
-          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
-            <div>
-              <div class="ml-card__pred" id="mlPred">—</div>
-              <div class="ml-card__sub" id="mlSub">Predicted spending for next 30 days</div>
+      <main class="page">
+        <!-- KPI SUMMARY STRIP -->
+        <section class="stats-grid">
+          <div class="stat-card">
+            <div class="kpi-icon-row">
+              <span class="stat-card__label">Next 30D Forecast</span>
+              <span class="kpi-badge-icon" style="background:var(--accent-light);color:var(--accent);">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+              </span>
             </div>
-            <select id="forecastDays" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;padding:6px 10px;border-radius:8px;font-size:13px;cursor:pointer">
-              <option value="14" style="color:#14141e">Next 14 days</option>
-              <option value="30" selected style="color:#14141e">Next 30 days</option>
-              <option value="90" style="color:#14141e">Next 90 days</option>
-            </select>
+            <div class="stat-card__value" id="anForecast30">—</div>
+            <div class="stat-card__delta stat-card__delta--neutral" id="anForecastSlope">Calculating model…</div>
           </div>
-          <div class="ml-meta">
-            <div class="ml-meta__item"><label>Confidence</label><value id="mlConf">—</value></div>
-            <div class="ml-meta__item"><label>Range (Min–Max)</label><value id="mlRange">—</value></div>
-            <div class="ml-meta__item"><label>Trend</label><value id="mlTrend">—</value></div>
+
+          <div class="stat-card">
+            <div class="kpi-icon-row">
+              <span class="stat-card__label">Daily Burn Velocity</span>
+              <span class="kpi-badge-icon" style="background:var(--warning-bg);color:var(--amber-600);">
+                <i class="fa-solid fa-gauge-high"></i>
+              </span>
+            </div>
+            <div class="stat-card__value" id="anDailyBurn">—</div>
+            <div class="stat-card__delta stat-card__delta--neutral" id="anBurnMeta">Per active day</div>
           </div>
-          <div class="window-list" id="mlWindows"></div>
-        </div>
 
-        <div class="chart-card">
-          <div class="chart-card__header">
-            <div><div class="chart-card__title">Spending by Day of Week</div><div class="chart-card__sub">Which days you spend the most</div></div>
+          <div class="stat-card">
+            <div class="kpi-icon-row">
+              <span class="stat-card__label">Peak Spend Day</span>
+              <span class="kpi-badge-icon" style="background:var(--danger-bg);color:var(--rose-600);">
+                <i class="fa-solid fa-calendar-day"></i>
+              </span>
+            </div>
+            <div class="stat-card__value" id="anPeakDay">—</div>
+            <div class="stat-card__delta stat-card__delta--neutral" id="anPeakDayAmt">Highest weekday avg</div>
           </div>
-          <div class="chart-wrap" style="height:220px"><canvas id="weeklyChart"></canvas></div>
-        </div>
-      </div>
 
-      <div class="grid grid-2 mb-6">
-        <div class="chart-card">
-          <div class="chart-card__header"><div><div class="chart-card__title">Spending Timeline</div><div class="chart-card__sub">Daily totals over period</div></div></div>
-          <div class="chart-wrap" style="height:230px"><canvas id="timelineChart"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card__header"><div><div class="chart-card__title">Category Distribution</div><div class="chart-card__sub">Share of spending</div></div></div>
-          <div class="chart-wrap" style="height:230px"><canvas id="catBarChart"></canvas></div>
-        </div>
-      </div>
+          <div class="stat-card">
+            <div class="kpi-icon-row">
+              <span class="stat-card__label">Primary Channel</span>
+              <span class="kpi-badge-icon" style="background:var(--info-bg);color:var(--sky-600);">
+                <i class="fa-solid fa-mobile-screen-button"></i>
+              </span>
+            </div>
+            <div class="stat-card__value" id="anTopChannel">—</div>
+            <div class="stat-card__delta stat-card__delta--neutral" id="anTopChannelShare">Share of outflow</div>
+          </div>
+        </section>
 
-      <div class="grid grid-2">
-        <div class="chart-card">
-          <div class="chart-card__header"><div><div class="chart-card__title">Payment Methods</div><div class="chart-card__sub">How you pay</div></div></div>
-          <div class="chart-wrap" style="height:190px"><canvas id="payChart"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card__header"><div><div class="chart-card__title">Smart Insights</div><div class="chart-card__sub">Automated spending observations</div></div></div>
-          <div id="insightsList" style="display:flex;flex-direction:column;gap:10px"></div>
-        </div>
-      </div>
+        <!-- AI INSIGHTS CARDS -->
+        <section class="insight-grid" id="insightsCardsRow">
+          <div class="skeleton-card"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+          <div class="skeleton-card"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+          <div class="skeleton-card"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div>
+        </section>
+
+        <!-- PRIMARY FORECAST CHART -->
+        <section class="card mb-6">
+          <div class="card-head">
+            <div>
+              <h2>Spend Trajectory &amp; 14-Day Regression Forecast</h2>
+              <div class="text-xs text-muted" id="forecastRangeSub">Actual daily outflow vs. ordinary least squares trend projection</div>
+            </div>
+            <span class="badge badge--info" id="modelConfidenceBadge">OLS Regression</span>
+          </div>
+          <div class="chart-box" style="height:295px;">
+            <canvas id="forecastChart"></canvas>
+          </div>
+        </section>
+
+        <!-- LOWER ANALYTICS ROW -->
+        <section class="grid grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h2>Weekday Burn Pattern</h2>
+                <div class="text-xs text-muted">Total spend distributed across days of the week</div>
+              </div>
+            </div>
+            <div class="chart-box">
+              <canvas id="weekdayChart"></canvas>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h2>Category Spend Concentration</h2>
+                <div class="text-xs text-muted">Ranked expenditure breakdown</div>
+              </div>
+            </div>
+            <div id="categoryRankList">
+              <div class="skeleton-line"></div>
+              <div class="skeleton-line"></div>
+              <div class="skeleton-line short"></div>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   </div>
-</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="core.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', async () => {
-  const { api, auth, Toast, Utils } = window.AppCore;
-  const ok = await window.requireAuth();
-  if (!ok) return;
+  <script src="core.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { api, auth, Toast, Utils } = window.AppCore;
+      if (!(await window.requireAuth())) return;
 
-  const u = auth.user;
-  if (u) {
-    document.getElementById('sidebarName').textContent = u.name || u.username;
-    document.getElementById('sidebarAvatar').textContent = (u.first_name?.[0] || u.username?.[0] || '?').toUpperCase();
-  }
+      let allExpenses = [];
+      let budgets = [];
+      let activeDays = 30;
+      let forecastChart = null;
+      let weekdayChart = null;
 
-  let currentPeriod = 'week';
-  const charts = {};
+      function toLocalISO(dateObj) {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const d = String(dateObj.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
 
-  function destroyChart(key) {
-    if (charts[key]) {
-      charts[key].destroy();
-      delete charts[key];
-    }
-  }
+      function normalizeDate(raw) {
+        if (!raw) return '';
+        const str = String(raw).trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+        const parsed = new Date(str);
+        return Number.isNaN(parsed.getTime()) ? str.slice(0, 10) : toLocalISO(parsed);
+      }
 
-  const baseChartOpts = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: '#14141e',
-        titleColor: '#a8a8c0',
-        bodyColor: '#e8e8f0',
-        padding: 10,
-        callbacks: { label: c => ' ' + Utils.formatCurrency(c.parsed.y ?? c.parsed) },
-      },
-    },
-    scales: {
-      x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#9ca3af' } },
-      y: {
-        beginAtZero: true,
-        grid: { color: 'rgba(128,128,128,0.08)' },
-        ticks: { font: { size: 11 }, color: '#9ca3af', callback: v => Utils.formatCompactCurrency(v) },
-      },
-    },
-  };
+      function parseLocalMidnight(iso) {
+        const [y, m, d] = iso.split('-').map(Number);
+        return new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0);
+      }
 
-  async function loadAnalytics(period) {
-    try {
-      const data = await api.get(`/analytics/overview/?period=${period}`, false);
-      const s = data.summary;
-      document.getElementById('aTotal').textContent = Utils.formatCurrency(s.total);
-      document.getElementById('aDailyAvg').textContent = Utils.formatCurrency(s.average);
-      document.getElementById('aMaxSingle').textContent = Utils.formatCurrency(s.max_single);
-      document.getElementById('aStreak').textContent = `${s.spending_streak}d`;
-      document.getElementById('aPeriodLabel').textContent = `${s.count} transactions`;
+      /* ── ORDINARY LEAST SQUARES LINEAR REGRESSION ── */
+      function computeLinearRegression(ys) {
+        const n = ys.length;
+        if (n === 0) return { slope: 0, intercept: 0 };
+        if (n === 1) return { slope: 0, intercept: ys[0] };
 
-      destroyChart('timeline');
-      charts.timeline = new Chart(document.getElementById('timelineChart'), {
-        type: 'line',
-        data: {
-          labels: data.daily_trend.map(d => Utils.formatDate(d.date, { month: 'short', day: 'numeric' })),
-          datasets: [{
-            data: data.daily_trend.map(d => parseFloat(d.amount) || 0),
-            borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,0.08)',
-            borderWidth: 2, tension: 0.4, fill: true, pointRadius: 3, pointHoverRadius: 5,
-          }],
-        },
-        options: baseChartOpts,
+        let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+        for (let i = 0; i < n; i++) {
+          sumX += i;
+          sumY += ys[i];
+          sumXY += i * ys[i];
+          sumXX += i * i;
+        }
+        const denom = n * sumXX - sumX * sumX;
+        const slope = denom !== 0 ? (n * sumXY - sumX * sumY) / denom : 0;
+        const intercept = (sumY - slope * sumX) / n;
+        return { slope, intercept };
+      }
+
+      document.querySelectorAll('#analyticsWindowGroup .btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#analyticsWindowGroup .btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          activeDays = Number(btn.dataset.days);
+          renderAnalytics();
+        });
       });
 
-      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      destroyChart('weekly');
-      charts.weekly = new Chart(document.getElementById('weeklyChart'), {
-        type: 'bar',
-        data: {
-          labels: days,
-          datasets: [{
-            data: data.weekly_pattern || Array(7).fill(0),
-            backgroundColor: days.map((_, i) => i >= 5 ? '#7c3aed' : '#c4b5fd'),
-            borderRadius: 6,
-          }],
-        },
-        options: baseChartOpts,
-      });
+      window.addEventListener('ems:themechange', () => renderAnalytics());
 
-      const cats = (data.by_category || []).slice(0, 7);
-      const catColors = ['#7c3aed', '#10b981', '#f59e0b', '#f43f5e', '#0ea5e9', '#ec4899', '#06b6d4'];
-      destroyChart('catBar');
-      charts.catBar = new Chart(document.getElementById('catBarChart'), {
-        type: 'bar',
-        data: {
-          labels: cats.map(c => c.category__name || 'Other'),
-          datasets: [{
-            data: cats.map(c => parseFloat(c.total) || 0),
-            backgroundColor: catColors,
-            borderRadius: 6,
-          }],
-        },
-        options: {
-          ...baseChartOpts,
-          indexAxis: 'y',
-          scales: {
-            x: {
-              beginAtZero: true,
-              grid: { color: 'rgba(128,128,128,0.08)' },
-              ticks: { font: { size: 11 }, color: '#9ca3af', callback: v => Utils.formatCompactCurrency(v) },
-            },
-            y: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#9ca3af' } },
+      function renderAnalytics() {
+        const normalized = allExpenses
+          .map(e => ({ ...e, _iso: normalizeDate(e.date), _amt: parseFloat(e.amount || 0) || 0 }))
+          .filter(e => e._iso)
+          .sort((a, b) => a._iso.localeCompare(b._iso));
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        let windowSlice = [];
+        let endAnchor = new Date(today);
+        let startCutoff = new Date(today);
+
+        if (activeDays === 0) {
+          windowSlice = normalized;
+          if (normalized.length) {
+            startCutoff = parseLocalMidnight(normalized[0]._iso);
+            endAnchor = parseLocalMidnight(normalized[normalized.length - 1]._iso);
+          }
+        } else {
+          startCutoff.setDate(endAnchor.getDate() - (activeDays - 1));
+          windowSlice = normalized.filter(e => {
+            const d = parseLocalMidnight(e._iso);
+            return d >= startCutoff && d <= endAnchor;
+          });
+
+          // Anchor to latest recorded expense if trailing window from today has no data
+          if (!windowSlice.length && normalized.length) {
+            endAnchor = parseLocalMidnight(normalized[normalized.length - 1]._iso);
+            startCutoff = new Date(endAnchor);
+            startCutoff.setDate(endAnchor.getDate() - (activeDays - 1));
+            windowSlice = normalized.filter(e => {
+              const d = parseLocalMidnight(e._iso);
+              return d >= startCutoff && d <= endAnchor;
+            });
+          }
+        }
+
+        const spanDays = Math.max(1, Math.round((endAnchor - startCutoff) / 86400000) + 1);
+        document.getElementById('forecastRangeSub').textContent = normalized.length
+          ? `Window: ${Utils.formatDate(toLocalISO(startCutoff))} – ${Utils.formatDate(toLocalISO(endAnchor))} + 14-day projection`
+          : 'Add expenses to generate regression forecasts';
+
+        // Build daily series for regression
+        const dayMap = {};
+        windowSlice.forEach(e => { dayMap[e._iso] = (dayMap[e._iso] || 0) + e._amt; });
+
+        const histLabels = [];
+        const histValues = [];
+        for (let d = new Date(startCutoff); d <= endAnchor; d.setDate(d.getDate() + 1)) {
+          const iso = toLocalISO(d);
+          histLabels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+          histValues.push(dayMap[iso] || 0);
+        }
+
+        const { slope, intercept } = computeLinearRegression(histValues);
+        const totalWindowSpend = windowSlice.reduce((s, e) => s + e._amt, 0);
+        const dailyBurn = totalWindowSpend / spanDays;
+
+        // Project next 30 days (clamping negative daily predictions to 0)
+        let projected30 = 0;
+        const nHist = histValues.length;
+        for (let step = 0; step < 30; step++) {
+          const pred = Math.max(0, intercept + slope * (nHist + step));
+          projected30 += pred;
+        }
+        if (projected30 === 0 && dailyBurn > 0) projected30 = dailyBurn * 30;
+
+        document.getElementById('anForecast30').textContent = Utils.formatCurrency(projected30);
+        const slopeEl = document.getElementById('anForecastSlope');
+        if (Math.abs(slope) < 1) {
+          slopeEl.className = 'stat-card__delta stat-card__delta--neutral';
+          slopeEl.textContent = 'Steady spending trajectory';
+        } else if (slope > 0) {
+          slopeEl.className = 'stat-card__delta stat-card__delta--down';
+          slopeEl.innerHTML = `<i class="fa-solid fa-arrow-trend-up"></i> +${Utils.formatCurrency(slope)}/day trend`;
+        } else {
+          slopeEl.className = 'stat-card__delta stat-card__delta--up';
+          slopeEl.innerHTML = `<i class="fa-solid fa-arrow-trend-down"></i> ${Utils.formatCurrency(Math.abs(slope))}/day cooling`;
+        }
+
+        document.getElementById('anDailyBurn').textContent = Utils.formatCurrency(dailyBurn);
+        document.getElementById('anBurnMeta').textContent = `${windowSlice.length} entries over ${spanDays}d`;
+
+        // Weekday analysis
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const weekdayTotals = [0, 0, 0, 0, 0, 0, 0];
+        windowSlice.forEach(e => {
+          const wd = parseLocalMidnight(e._iso).getDay();
+          weekdayTotals[wd] += e._amt;
+        });
+        let peakIdx = 0;
+        weekdayTotals.forEach((v, i) => { if (v > weekdayTotals[peakIdx]) peakIdx = i; });
+        document.getElementById('anPeakDay').textContent = totalWindowSpend > 0 ? dayNames[peakIdx] : '—';
+        document.getElementById('anPeakDayAmt').textContent = totalWindowSpend > 0
+          ? `${Utils.formatCurrency(weekdayTotals[peakIdx])} cumulative`
+          : 'No data yet';
+
+        // Payment channel breakdown
+        const byPay = {};
+        windowSlice.forEach(e => {
+          const k = (e.payment_method || 'cash').toUpperCase();
+          byPay[k] = (byPay[k] || 0) + e._amt;
+        });
+        const topPay = Object.entries(byPay).sort((a, b) => b[1] - a[1])[0];
+        document.getElementById('anTopChannel').textContent = topPay ? topPay[0] : '—';
+        document.getElementById('anTopChannelShare').textContent = topPay && totalWindowSpend > 0
+          ? `${Math.round((topPay[1] / totalWindowSpend) * 100)}% of window spend`
+          : 'No data yet';
+
+        // Category concentration
+        const byCat = {};
+        windowSlice.forEach(e => {
+          const name = e.category_name || 'Uncategorized';
+          if (!byCat[name]) byCat[name] = { total: 0, count: 0, color: e.category_color || '#7c3aed' };
+          byCat[name].total += e._amt;
+          byCat[name].count += 1;
+        });
+        const sortedCats = Object.entries(byCat).sort((a, b) => b[1].total - a[1].total);
+
+        renderInsights(windowSlice, sortedCats, totalWindowSpend, dailyBurn, dayNames[peakIdx]);
+        renderCategoryRankList(sortedCats, totalWindowSpend);
+        renderCharts(histLabels, histValues, endAnchor, slope, intercept, dayNames, weekdayTotals);
+      }
+
+      function renderInsights(slice, sortedCats, totalSpend, dailyBurn, peakDay) {
+        const container = document.getElementById('insightsCardsRow');
+        if (!slice.length) {
+          container.innerHTML = `
+            <div class="insight-card" style="grid-column:1/-1;">
+              <div class="insight-card__icon" style="background:var(--accent-light);color:var(--accent);">
+                <i class="fa-solid fa-lightbulb"></i>
+              </div>
+              <div>
+                <div class="insight-card__title">Not enough transaction data for AI insights</div>
+                <div class="insight-card__desc">Log a few expenses across categories to unlock anomaly detection, burn rate alerts, and spending recommendations.</div>
+              </div>
+            </div>`;
+          return;
+        }
+
+        const topCat = sortedCats[0];
+        const topCatPct = topCat && totalSpend > 0 ? Math.round((topCat[1].total / totalSpend) * 100) : 0;
+
+        // Detect largest single outlier transaction (> 2.2x average transaction)
+        const avgTxn = totalSpend / slice.length;
+        const outlier = [...slice].sort((a, b) => b._amt - a._amt)[0];
+        const isOutlier = outlier && outlier._amt > avgTxn * 2.2;
+
+        // Budget guardrail check
+        const breachedBudget = budgets.find(b => parseFloat(b.amount) > 0 && (parseFloat(b.spent || 0) / parseFloat(b.amount)) >= 0.85);
+
+        const cards = [
+          {
+            icon: 'fa-chart-pie',
+            bg: 'var(--accent-light)',
+            color: 'var(--accent)',
+            title: topCat ? `${topCat[0]} leads at ${topCatPct}%` : 'Balanced Category Mix',
+            desc: topCat
+              ? `${Utils.formatCurrency(topCat[1].total)} spent across ${topCat[1].count} transaction${topCat[1].count === 1 ? '' : 's'} in this window.`
+              : 'Your spending is evenly distributed across categories.',
           },
-        },
-      });
+          isOutlier
+            ? {
+                icon: 'fa-bolt',
+                bg: 'var(--warning-bg)',
+                color: 'var(--amber-600)',
+                title: `Outlier Spike: ${Utils.formatCurrency(outlier._amt)}`,
+                desc: `"${outlier.title}" on ${Utils.formatDate(outlier._iso)} is ${(outlier._amt / avgTxn).toFixed(1)}x your average transaction.`,
+              }
+            : {
+                icon: 'fa-calendar-check',
+                bg: 'var(--info-bg)',
+                color: 'var(--sky-600)',
+                title: `Highest Activity on ${peakDay}`,
+                desc: `Your daily burn velocity averages ${Utils.formatCurrency(dailyBurn)}/day across the selected timeframe.`,
+              },
+          breachedBudget
+            ? {
+                icon: 'fa-triangle-exclamation',
+                bg: 'var(--danger-bg)',
+                color: 'var(--rose-600)',
+                title: `${breachedBudget.category_name} Guardrail Alert`,
+                desc: `You have utilized ${Math.round((breachedBudget.spent / breachedBudget.amount) * 100)}% of your ${Utils.formatCurrency(breachedBudget.amount)} cap.`,
+              }
+            : {
+                icon: 'fa-shield-heart',
+                bg: 'var(--success-bg)',
+                color: 'var(--emerald-600)',
+                title: 'Budget Guardrails Healthy',
+                desc: budgets.length
+                  ? `All ${budgets.length} configured category budgets are currently within safe thresholds.`
+                  : 'Set monthly category budgets to receive proactive threshold alerts here.',
+              },
+        ];
 
-      const pays = data.by_payment || [];
-      const payColors = ['#7c3aed', '#10b981', '#f59e0b', '#0ea5e9', '#f43f5e', '#64748b'];
-      destroyChart('pay');
-      charts.pay = new Chart(document.getElementById('payChart'), {
-        type: 'doughnut',
-        data: {
-          labels: pays.map(p => p.payment_method),
-          datasets: [{ data: pays.map(p => parseFloat(p.total) || 0), backgroundColor: payColors, borderWidth: 2, borderColor: 'transparent' }],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '65%',
-          plugins: {
-            legend: { position: 'right', labels: { font: { size: 12 }, boxWidth: 10, padding: 12, color: '#9ca3af' } },
-            tooltip: {
-              backgroundColor: '#14141e',
-              callbacks: { label: c => ` ${c.label}: ${Utils.formatCurrency(c.raw)}` },
+        container.innerHTML = cards.map(c => `
+          <article class="insight-card">
+            <div class="insight-card__icon" style="background:${c.bg};color:${c.color};">
+              <i class="fa-solid ${c.icon}"></i>
+            </div>
+            <div>
+              <div class="insight-card__title">${Utils.escapeHtml(c.title)}</div>
+              <div class="insight-card__desc">${Utils.escapeHtml(c.desc)}</div>
+            </div>
+          </article>
+        `).join('');
+      }
+
+      function renderCategoryRankList(sortedCats, totalSpend) {
+        const listEl = document.getElementById('categoryRankList');
+        if (!sortedCats.length) {
+          listEl.innerHTML = `<div class="text-sm text-muted" style="padding:20px 0;">No categorized expenses in this window.</div>`;
+          return;
+        }
+
+        listEl.innerHTML = sortedCats.slice(0, 6).map(([name, info]) => {
+          const pct = totalSpend > 0 ? Math.round((info.total / totalSpend) * 100) : 0;
+          return `
+            <div class="cat-rank-row">
+              <div class="flex justify-between items-center text-sm">
+                <span class="font-medium flex items-center gap-2">
+                  <span class="cat-dot" style="background:${Utils.escapeHtml(info.color)};"></span>
+                  <span>${Utils.escapeHtml(name)}</span>
+                  <span class="text-xs text-muted">(${info.count})</span>
+                </span>
+                <span class="font-mono font-semibold">${Utils.formatCurrency(info.total)} <span class="text-xs text-muted">(${pct}%)</span></span>
+              </div>
+              <div class="progress">
+                <div class="progress__bar" style="width:${pct}%;background:${Utils.escapeHtml(info.color)};"></div>
+              </div>
+            </div>`;
+        }).join('');
+      }
+
+      function renderCharts(histLabels, histValues, endAnchor, slope, intercept, dayNames, weekdayTotals) {
+        const isDark = window.AppCore.ThemeManager.current() === 'dark';
+        const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+        const tickColor = isDark ? '#a8a8c0' : '#7c7c98';
+
+        // Build 14-day forecast extension
+        const forecastHorizon = 14;
+        const nHist = histValues.length;
+        const combinedLabels = [...histLabels];
+        const actualSeries = [...histValues];
+        const trendSeries = histValues.map((_, i) => Math.max(0, intercept + slope * i));
+
+        for (let f = 1; f <= forecastHorizon; f++) {
+          const futureDt = new Date(endAnchor);
+          futureDt.setDate(endAnchor.getDate() + f);
+          combinedLabels.push(futureDt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+          actualSeries.push(null);
+          trendSeries.push(Math.max(0, intercept + slope * (nHist - 1 + f)));
+        }
+
+        if (forecastChart) forecastChart.destroy();
+        const ctx1 = document.getElementById('forecastChart').getContext('2d');
+        const grad = ctx1.createLinearGradient(0, 0, 0, 290);
+        grad.addColorStop(0, 'rgba(124, 58, 237, 0.24)');
+        grad.addColorStop(1, 'rgba(124, 58, 237, 0.0)');
+
+        forecastChart = new Chart(ctx1, {
+          type: 'line',
+          data: {
+            labels: combinedLabels,
+            datasets: [
+              {
+                label: 'Actual Daily Spend',
+                data: actualSeries,
+                borderColor: '#7c3aed',
+                backgroundColor: grad,
+                borderWidth: 2.2,
+                fill: true,
+                tension: 0.3,
+                pointRadius: nHist <= 35 ? 3 : 1.5,
+              },
+              {
+                label: 'Regression Trend & Forecast',
+                data: trendSeries,
+                borderColor: '#10b981',
+                borderDash: [6, 5],
+                borderWidth: 2,
+                fill: false,
+                tension: 0,
+                pointRadius: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: {
+                position: 'top',
+                align: 'end',
+                labels: { color: tickColor, boxWidth: 12, font: { size: 11.5 } },
+              },
+              tooltip: {
+                callbacks: {
+                  label: ctx => ctx.parsed.y !== null ? ` ${ctx.dataset.label}: ${Utils.formatCurrency(ctx.parsed.y)}` : null,
+                },
+              },
+            },
+            scales: {
+              x: {
+                grid: { display: false },
+                ticks: { color: tickColor, maxTicksLimit: 10, font: { size: 11 } },
+              },
+              y: {
+                beginAtZero: true,
+                grid: { color: gridColor },
+                ticks: { color: tickColor, font: { size: 11 }, callback: v => Utils.formatCurrency(v) },
+              },
             },
           },
-        },
-      });
+        });
 
-      buildInsights(data);
-    } catch (e) { Toast.error('Failed to load analytics: ' + e.message); }
-  }
-
-  function buildInsights(data) {
-    const insights = [];
-    const cats = data.by_category || [];
-    const total = data.summary.total;
-    if (cats.length > 0 && total > 0) {
-      const top = cats[0];
-      const share = ((parseFloat(top.total) / total) * 100).toFixed(0);
-      insights.push({
-        icon: 'fa-chart-pie', color: '#7c3aed',
-        title: `${top.category__name} leads your spending`,
-        desc: `${share}% of total (${Utils.formatCurrency(top.total)}) across ${top.count} transaction${top.count > 1 ? 's' : ''}.`,
-      });
-    }
-    const wp = data.weekly_pattern || [];
-    if (wp.length === 7) {
-      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-      const maxDayIdx = wp.indexOf(Math.max(...wp));
-      if (wp[maxDayIdx] > 0) {
-        insights.push({
-          icon: 'fa-calendar-week', color: '#f59e0b',
-          title: `Highest spending on ${days[maxDayIdx]}s`,
-          desc: `${Utils.formatCurrency(wp[maxDayIdx])} spent on ${days[maxDayIdx]}s in this period.`,
+        if (weekdayChart) weekdayChart.destroy();
+        weekdayChart = new Chart(document.getElementById('weekdayChart'), {
+          type: 'bar',
+          data: {
+            labels: dayNames,
+            datasets: [{
+              label: 'Spend by Day',
+              data: weekdayTotals,
+              backgroundColor: 'rgba(124, 58, 237, 0.78)',
+              hoverBackgroundColor: '#7c3aed',
+              borderRadius: 6,
+              maxBarThickness: 36,
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: ctx => ` ${Utils.formatCurrency(ctx.parsed.y)}` } },
+            },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: tickColor, font: { size: 11.5 } } },
+              y: {
+                beginAtZero: true,
+                grid: { color: gridColor },
+                ticks: { color: tickColor, font: { size: 11 }, callback: v => Utils.formatCurrency(v) },
+              },
+            },
+          },
         });
       }
-    }
-    if (data.summary.spending_streak >= 3) {
-      insights.push({
-        icon: 'fa-fire', color: '#f43f5e',
-        title: `${data.summary.spending_streak}-day spending streak`,
-        desc: "You've recorded expenses every day recently.",
-      });
-    }
-    const el = document.getElementById('insightsList');
-    if (!insights.length) {
-      el.innerHTML = `<div class="empty-state" style="padding:20px 0"><div class="empty-state__sub">Add more expenses to unlock insights</div></div>`;
-      return;
-    }
-    el.innerHTML = insights.map(ins => `
-      <div class="insight-card">
-        <div class="insight-icon" style="background:${ins.color}18;color:${ins.color}"><i class="fa-solid ${ins.icon}"></i></div>
-        <div>
-          <div class="insight-title">${Utils.escapeHtml(ins.title)}</div>
-          <div class="insight-desc">${Utils.escapeHtml(ins.desc)}</div>
-        </div>
-      </div>`).join('');
-  }
 
-  async function loadPredictions(days = 30) {
-    try {
-      const data = await api.get(`/analytics/predictions/?days=${days}`, false);
-      const pred = data.recommended_prediction ?? 0;
-      document.getElementById('mlPred').textContent = Utils.formatCurrency(pred);
-      document.getElementById('mlSub').textContent = `Predicted spending for next ${days} days`;
-      document.getElementById('mlConf').textContent = `${data.confidence || '—'} (R²=${(data.confidence_score ?? 0).toFixed(2)})`;
-      if (data.confidence_interval) {
-        document.getElementById('mlRange').textContent = `${Utils.formatCurrency(data.confidence_interval.min)} – ${Utils.formatCurrency(data.confidence_interval.max)}`;
+      async function loadAnalyticsData() {
+        try {
+          const [expRes, budRes] = await Promise.all([
+            api.getAll('/expenses/'),
+            api.getAll('/budgets/').catch(() => []),
+          ]);
+          allExpenses = expRes;
+          budgets = budRes;
+          renderAnalytics();
+        } catch (err) {
+          Toast.error('Failed to load analytics: ' + err.message);
+        }
       }
-      const trendMap = { increasing: '↑ Increasing', decreasing: '↓ Decreasing', stable: '→ Stable', insufficient_data: 'Need more data' };
-      document.getElementById('mlTrend').textContent = trendMap[data.trend] || '→ Stable';
 
-      const wEl = document.getElementById('mlWindows');
-      if (data.window_breakdown?.length) {
-        wEl.innerHTML = data.window_breakdown.map(w => `
-          <div class="window-row">
-            <span>${Utils.escapeHtml(w.window)} (${w.non_zero} active days)</span>
-            <span style="font-family:var(--font-mono)">${Utils.formatCurrency(w.lr_daily)}/day · R²=${w.r_squared.toFixed(2)}</span>
-          </div>`).join('');
-      } else {
-        wEl.innerHTML = `<div class="window-row"><span>${Utils.escapeHtml(data.message || 'Log expenses over at least 3 days to see window breakdowns.')}</span></div>`;
-      }
-    } catch {
-      document.getElementById('mlPred').textContent = 'Need more data';
-      document.getElementById('mlSub').textContent = 'Add at least 3 days of expenses to generate predictions';
-    }
-  }
-
-  document.querySelectorAll('.period-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.period-tab').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      currentPeriod = btn.dataset.period;
-      loadAnalytics(currentPeriod);
+      document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
+      await loadAnalyticsData();
     });
-  });
-
-  document.getElementById('forecastDays').addEventListener('change', e => loadPredictions(e.target.value));
-  document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
-
-  loadAnalytics(currentPeriod);
-  loadPredictions(30);
-});
-</script>
+  </script>
 </body>
 </html>

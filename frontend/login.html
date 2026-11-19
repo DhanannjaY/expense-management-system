@@ -1,191 +1,397 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sign In — EMS</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap">
-<style>
-:root {
-  --accent: #7c3aed; --accent-light: #ede9fe;
-  --text-primary: #14141e; --text-secondary: #5c5c7a; --text-muted: #9ca3af;
-  --border: rgba(0,0,0,0.08); --bg: #f4f4f8; --danger: #f43f5e;
-  --font: 'DM Sans', system-ui, sans-serif; --radius: 10px;
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: var(--font); background: var(--bg); color: var(--text-primary);
-  min-height: 100vh; display: grid; place-items: center; padding: 24px;
-  -webkit-font-smoothing: antialiased;
-}
-.wrap {
-  display: grid; grid-template-columns: 1fr 1.1fr;
-  max-width: 860px; width: 100%; background: #fff;
-  border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.12);
-  overflow: hidden; border: 1px solid var(--border);
-}
-.left {
-  background: linear-gradient(145deg, #1e1133 0%, #3b1a6e 50%, #6d28d9 100%);
-  padding: 48px 40px; display: flex; flex-direction: column; justify-content: space-between;
-  position: relative; overflow: hidden;
-}
-.left::before {
-  content: ''; position: absolute; bottom: -80px; right: -80px;
-  width: 260px; height: 260px; border-radius: 50%;
-  background: rgba(255,255,255,0.05); pointer-events: none;
-}
-.left-logo { display: flex; align-items: center; gap: 10px; }
-.logo-icon {
-  width: 40px; height: 40px; background: rgba(255,255,255,0.15);
-  border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;
-}
-.logo-text { color: #fff; font-size: 18px; font-weight: 600; }
-.left-hero h2 { font-size: 26px; font-weight: 600; color: #fff; line-height: 1.3; letter-spacing: -0.4px; margin-bottom: 12px; }
-.left-hero p { font-size: 14px; color: rgba(255,255,255,0.68); line-height: 1.6; }
-.left-footer { font-size: 11px; color: rgba(255,255,255,0.35); }
-.right { padding: 48px 40px; display: flex; flex-direction: column; justify-content: center; }
-.right-header { margin-bottom: 26px; }
-.right-header h2 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; margin-bottom: 4px; }
-.right-header p { font-size: 14px; color: var(--text-secondary); }
-.form-stack { display: flex; flex-direction: column; gap: 16px; }
-.form-group { display: flex; flex-direction: column; gap: 6px; }
-.form-label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
-.input-wrap { position: relative; }
-.input-wrap input {
-  width: 100%; padding: 11px 14px 11px 40px;
-  background: #f8f8fc; border: 1.5px solid rgba(0,0,0,0.1);
-  border-radius: var(--radius); font-size: 14px; font-family: var(--font);
-  color: var(--text-primary); outline: none; transition: border-color 0.15s, box-shadow 0.15s;
-}
-.input-wrap input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); background: #fff; }
-.input-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 15px; pointer-events: none; }
-.eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 15px; }
-.btn-submit {
-  width: 100%; padding: 12px; background: var(--accent); color: #fff;
-  border: none; border-radius: var(--radius); font-size: 15px; font-weight: 600;
-  font-family: var(--font); cursor: pointer; transition: all 0.15s;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-}
-.btn-submit:hover:not(:disabled) { background: #6d28d9; box-shadow: 0 4px 14px rgba(124,58,237,0.4); transform: translateY(-1px); }
-.btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
-.spinner-sm {
-  display: inline-block; width: 16px; height: 16px;
-  border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
-  border-radius: 50%; animation: spin 0.7s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.alert { padding: 11px 14px; border-radius: var(--radius); font-size: 13px; display: none; align-items: center; gap: 8px; margin-bottom: 14px; }
-.alert.show { display: flex; }
-.alert--error { background: rgba(244,63,94,0.08); color: #be123c; border: 1px solid rgba(244,63,94,0.2); }
-.register-link { text-align: center; font-size: 14px; color: var(--text-secondary); margin-top: 6px; }
-.register-link a { color: var(--accent); font-weight: 500; text-decoration: none; }
-@media (max-width: 640px) {
-  .wrap { grid-template-columns: 1fr; }
-  .left { display: none; }
-  .right { padding: 34px 24px; }
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — Expense Management System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <style>
+    .auth-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+      background: var(--bg-base);
+    }
+    .auth-aside {
+      background: linear-gradient(145deg, #120a24 0%, #2b1254 50%, #6d28d9 100%);
+      color: #ffffff;
+      padding: 48px 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-aside::after {
+      content: '';
+      position: absolute;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(167, 139, 250, 0.22) 0%, transparent 70%);
+      bottom: -140px;
+      right: -120px;
+      pointer-events: none;
+    }
+    .auth-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #ffffff;
+    }
+    .auth-brand__icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+    .auth-brand__name {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .auth-brand__sub {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: rgba(255, 255, 255, 0.72);
+    }
+    .auth-hero {
+      max-width: 440px;
+      position: relative;
+      z-index: 1;
+    }
+    .auth-hero h1 {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.6px;
+      margin-bottom: 14px;
+    }
+    .auth-hero p {
+      font-size: 14.5px;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.78);
+      margin-bottom: 28px;
+    }
+    .auth-features {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .auth-feat {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13.5px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+    .auth-feat__dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      color: #c4b5fd;
+      flex-shrink: 0;
+    }
+    .auth-aside__foot {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      position: relative;
+      z-index: 1;
+    }
+
+    .auth-main {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 36px 24px;
+      position: relative;
+    }
+    .auth-theme-bar {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 410px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px 30px;
+      box-shadow: var(--shadow-md);
+    }
+    .auth-card__title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      color: var(--text-primary);
+    }
+    .auth-card__sub {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      margin-bottom: 22px;
+    }
+    .input-icon-wrap {
+      position: relative;
+    }
+    .input-icon-wrap .form-control {
+      padding-left: 38px;
+    }
+    .input-icon-wrap > i.lead-ico {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 13.5px;
+      pointer-events: none;
+    }
+    .pw-toggle {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 4px 6px;
+      font-size: 13.5px;
+      transition: color var(--transition);
+    }
+    .pw-toggle:hover {
+      color: var(--text-primary);
+    }
+    .auth-alert {
+      display: none;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 13px;
+      border-radius: var(--radius);
+      background: var(--danger-bg);
+      color: var(--danger);
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+    .auth-alert.show {
+      display: flex;
+    }
+    .auth-switch {
+      text-align: center;
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+    .auth-switch a {
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .auth-switch a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 900px) {
+      .auth-shell {
+        grid-template-columns: 1fr;
+      }
+      .auth-aside {
+        display: none;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="left">
-    <div class="left-logo">
-      <div class="logo-icon">💰</div>
-      <div class="logo-text">EMS</div>
-    </div>
-    <div class="left-hero">
-      <h2>Welcome back to<br>smarter finance.</h2>
-      <p>Track daily expenses, stay within category budgets, and forecast next month's spending with ML insights.</p>
-    </div>
-    <div class="left-footer">© 2026 EMS · Finance Manager</div>
-  </div>
+  <div class="auth-shell">
+    <!-- LEFT BRAND SHOWCASE -->
+    <aside class="auth-aside">
+      <a href="login.html" class="auth-brand">
+        <div class="auth-brand__icon"><i class="fa-solid fa-wallet"></i></div>
+        <div>
+          <div class="auth-brand__name">EMS</div>
+          <div class="auth-brand__sub">Finance Manager</div>
+        </div>
+      </a>
 
-  <div class="right">
-    <div class="right-header">
-      <h2>Sign in</h2>
-      <p>Enter your username or email to continue.</p>
-    </div>
+      <div class="auth-hero">
+        <h1>Clarity over every rupee you earn, spend, and save.</h1>
+        <p>Track multi-channel transactions, enforce smart budget guardrails, and forecast cash outflow with built-in regression insights.</p>
 
-    <div class="alert alert--error" id="alertError"><span>⚠</span><span id="alertErrMsg"></span></div>
-
-    <form class="form-stack" id="loginForm" novalidate>
-      <div class="form-group">
-        <label class="form-label" for="username">Username or Email</label>
-        <div class="input-wrap">
-          <span class="input-icon">👤</span>
-          <input type="text" id="username" placeholder="e.g. alice" autocomplete="username" autofocus required>
+        <div class="auth-features">
+          <div class="auth-feat">
+            <span class="auth-feat__dot"><i class="fa-solid fa-chart-line"></i></span>
+            <span>Real-time cash flow &amp; 30-day spend forecasting</span>
+          </div>
+          <div class="auth-feat">
+            <span class="auth-feat__dot"><i class="fa-solid fa-bullseye"></i></span>
+            <span>Automated category budget alerts &amp; guardrails</span>
+          </div>
+          <div class="auth-feat">
+            <span class="auth-feat__dot"><i class="fa-solid fa-piggy-bank"></i></span>
+            <span>Dedicated savings milestones &amp; instant statement exports</span>
+          </div>
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label" for="password">Password</label>
-        <div class="input-wrap">
-          <span class="input-icon">🔒</span>
-          <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" required>
-          <button type="button" class="eye-btn" id="eyePw" aria-label="Toggle password">👁</button>
-        </div>
+      <div class="auth-aside__foot">
+        Personal Finance &amp; Expense Management Workspace
+      </div>
+    </aside>
+
+    <!-- RIGHT SIGN-IN FORM -->
+    <main class="auth-main">
+      <div class="auth-theme-bar">
+        <button type="button" class="btn btn--ghost btn--icon btn--sm" id="quickThemeBtn" title="Toggle theme">
+          <i class="fa-solid fa-circle-half-stroke"></i>
+        </button>
       </div>
 
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);cursor:pointer">
-        <input type="checkbox" id="remember" style="accent-color:var(--accent)">
-        Keep me signed in on this device
-      </label>
+      <div class="auth-card">
+        <div class="auth-card__title">Welcome back</div>
+        <div class="auth-card__sub">Sign in to access your financial command center</div>
 
-      <button type="submit" class="btn-submit" id="submitBtn">
-        <span id="btnLabel">Sign In</span>
-      </button>
+        <div class="auth-alert" id="loginAlert" role="alert">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span id="loginAlertText">Invalid credentials</span>
+        </div>
 
-      <div class="register-link">Don't have an account? <a href="register.html">Create one</a></div>
-    </form>
+        <form id="loginForm">
+          <div class="form-group">
+            <label class="form-label form-label--required" for="loginIdentity">Username or Email</label>
+            <div class="input-icon-wrap">
+              <i class="fa-regular fa-user lead-ico"></i>
+              <input
+                type="text"
+                class="form-control"
+                id="loginIdentity"
+                placeholder="Enter username or email"
+                autocomplete="username"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label form-label--required" for="loginPassword">Password</label>
+            <div class="input-icon-wrap">
+              <i class="fa-solid fa-lock lead-ico"></i>
+              <input
+                type="password"
+                class="form-control"
+                id="loginPassword"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                style="padding-right:38px;"
+                required
+              />
+              <button type="button" class="pw-toggle" id="togglePwBtn" aria-label="Show password">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between mb-4">
+            <label class="flex items-center gap-2 text-xs text-secondary" style="cursor:pointer;">
+              <input type="checkbox" id="rememberMeChk" checked />
+              <span>Keep me signed in</span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn--primary" id="loginSubmitBtn" style="width:100%;justify-content:center;padding:11px 16px;">
+            <i class="fa-solid fa-right-to-bracket"></i><span>Sign In</span>
+          </button>
+        </form>
+
+        <div class="auth-switch">
+          New to EMS? <a href="register.html">Create an account</a>
+        </div>
+      </div>
+    </main>
   </div>
-</div>
 
-<script src="core.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', async () => {
-  const { auth } = window.AppCore;
-  if (auth.isAuthenticated() && await auth.verify()) {
-    window.location.href = 'dashboard.html';
-    return;
-  }
+  <script src="core.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const { api, auth, ThemeManager, Toast, Loader } = window.AppCore;
 
-  document.getElementById('eyePw').addEventListener('click', () => {
-    const inp = document.getElementById('password');
-    inp.type = inp.type === 'password' ? 'text' : 'password';
-  });
+      if (auth.isAuthenticated()) {
+        window.location.replace('dashboard.html');
+        return;
+      }
 
-  document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const alertEl = document.getElementById('alertError');
-    alertEl.classList.remove('show');
+      document.getElementById('quickThemeBtn').addEventListener('click', () => {
+        const next = ThemeManager.current() === 'dark' ? 'light' : 'dark';
+        ThemeManager.set(next);
+      });
 
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    const remember = document.getElementById('remember').checked;
+      const pwInput = document.getElementById('loginPassword');
+      const toggleBtn = document.getElementById('togglePwBtn');
+      toggleBtn.addEventListener('click', () => {
+        const isHidden = pwInput.type === 'password';
+        pwInput.type = isHidden ? 'text' : 'password';
+        toggleBtn.innerHTML = `<i class="fa-regular ${isHidden ? 'fa-eye-slash' : 'fa-eye'}"></i>`;
+      });
 
-    if (!username || !password) {
-      document.getElementById('alertErrMsg').textContent = 'Username and password are required.';
-      alertEl.classList.add('show');
-      return;
-    }
+      const alertBox = document.getElementById('loginAlert');
+      const alertText = document.getElementById('loginAlertText');
 
-    const btn = document.getElementById('submitBtn');
-    const lbl = document.getElementById('btnLabel');
-    btn.disabled = true;
-    lbl.innerHTML = '<span class="spinner-sm"></span> Signing in…';
+      document.getElementById('loginForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        alertBox.classList.remove('show');
 
-    const res = await auth.login(username, password, remember);
-    if (res.success) {
-      window.location.href = 'dashboard.html';
-    } else {
-      document.getElementById('alertErrMsg').textContent = res.error;
-      alertEl.classList.add('show');
-      btn.disabled = false;
-      lbl.textContent = 'Sign In';
-    }
-  });
-});
-</script>
+        const identity = document.getElementById('loginIdentity').value.trim();
+        const password = pwInput.value;
+        const persist = document.getElementById('rememberMeChk').checked;
+        const btn = document.getElementById('loginSubmitBtn');
+
+        Loader.showBtn(btn, true);
+        try {
+          const payload = {
+            username: identity,
+            email: identity,
+            password,
+          };
+
+          let res = null;
+          for (const endpoint of ['/auth/login/', '/login/', '/token/']) {
+            try {
+              res = await api.post(endpoint, payload, { auth: false });
+              break;
+            } catch (err) {
+              if (err.status !== 404) throw err;
+            }
+          }
+
+          const token = res?.token || res?.key || res?.access;
+          if (!token) throw new Error('Authentication succeeded but no access token was returned.');
+
+          const user = res?.user || { username: identity, email: identity.includes('@') ? identity : '' };
+          auth.setSession(token, user, persist);
+          Toast.success('Signed in successfully');
+          window.location.href = 'dashboard.html';
+        } catch (err) {
+          alertText.textContent = err.message || 'Unable to sign in. Check your credentials.';
+          alertBox.classList.add('show');
+        } finally {
+          Loader.showBtn(btn, false);
+        }
+      });
+    });
+  </script>
 </body>
 </html>

@@ -1,400 +1,668 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Settings — EMS</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="assets/css/main.css">
-<style>
-.settings-layout { display:grid; grid-template-columns:200px 1fr; gap:24px; align-items:start; }
-.settings-nav { display:flex; flex-direction:column; gap:3px; position:sticky; top:76px; }
-.snav-btn { display:flex; align-items:center; gap:9px; padding:9px 12px; border-radius:var(--radius); border:none; background:transparent; color:var(--text-secondary); font-size:14px; font-weight:500; cursor:pointer; text-align:left; font-family:var(--font-sans); transition:all 0.15s; }
-.snav-btn:hover { background:var(--bg-hover); color:var(--text-primary); }
-.snav-btn.active { background:var(--accent-light); color:var(--accent); font-weight:600; }
-.settings-panel { display:none; flex-direction:column; gap:20px; }
-.settings-panel.active { display:flex; }
-.s-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; }
-.s-card__title { font-size:16px; font-weight:600; margin-bottom:4px; }
-.s-card__sub { font-size:13px; color:var(--text-muted); margin-bottom:20px; }
-.toggle-row { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 0; border-bottom:1px solid var(--border); }
-.toggle-row:last-child { border-bottom:none; padding-bottom:0; }
-.toggle-row:first-child { padding-top:0; }
-.toggle-info__title { font-size:14px; font-weight:500; }
-.toggle-info__sub { font-size:12px; color:var(--text-muted); }
-.toggle { position:relative; width:44px; height:24px; flex-shrink:0; }
-.toggle input { opacity:0; width:0; height:0; }
-.toggle-slider { position:absolute; inset:0; background:var(--border-strong); border-radius:99px; cursor:pointer; transition:0.25s; }
-.toggle-slider::before { content:''; position:absolute; height:18px; width:18px; left:3px; bottom:3px; background:white; border-radius:50%; transition:0.25s; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
-.toggle input:checked + .toggle-slider { background:var(--accent); }
-.toggle input:checked + .toggle-slider::before { transform:translateX(20px); }
-.theme-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-.theme-opt { border:1.5px solid var(--border); border-radius:var(--radius); padding:14px; text-align:center; cursor:pointer; transition:all 0.15s; font-size:13px; font-weight:500; }
-.theme-opt:hover { border-color:var(--accent); }
-.theme-opt.active { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
-.theme-opt i { display:block; font-size:20px; margin-bottom:6px; }
-.danger-card { border-color:rgba(244,63,94,0.25); }
-@media (max-width:768px) { .settings-layout { grid-template-columns:1fr; } }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings — Expense Management System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <style>
+    .settings-shell {
+      display: grid;
+      grid-template-columns: 230px minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+    .settings-rail {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: var(--shadow-xs);
+    }
+    .settings-rail button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border: none;
+      border-radius: var(--radius);
+      background: transparent;
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-align: left;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .settings-rail button i {
+      width: 16px;
+      text-align: center;
+      font-size: 14px;
+    }
+    .settings-rail button:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+    .settings-rail button.active {
+      background: var(--accent-light);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .settings-panel {
+      display: none;
+    }
+    .settings-panel.active {
+      display: block;
+    }
+
+    .sec-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sec-head__title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .sec-head__sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .profile-banner {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 18px;
+      border-radius: var(--radius);
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      margin-bottom: 18px;
+    }
+    .profile-banner__avatar {
+      width: 54px;
+      height: 54px;
+      border-radius: var(--radius-full);
+      background: linear-gradient(135deg, var(--violet-600), var(--violet-500));
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-size: 21px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .theme-cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .theme-choice {
+      border: 1.5px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      background: var(--bg-base);
+      cursor: pointer;
+      text-align: left;
+      transition: all var(--transition);
+    }
+    .theme-choice:hover {
+      border-color: var(--accent);
+    }
+    .theme-choice.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      box-shadow: 0 0 0 3px var(--accent-light);
+    }
+    .theme-choice__top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .theme-choice__check {
+      color: var(--accent);
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .theme-choice.active .theme-choice__check {
+      opacity: 1;
+    }
+
+    .cat-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .cat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-base);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    .cat-chip__dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .cat-chip__del {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0 2px;
+      font-size: 12px;
+      line-height: 1;
+      transition: color var(--transition);
+    }
+    .cat-chip__del:hover {
+      color: var(--danger);
+    }
+
+    .color-picker-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 10px;
+      height: 39px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: var(--bg-base);
+    }
+    .color-picker-wrap input[type="color"] {
+      width: 22px;
+      height: 22px;
+      border: none;
+      background: none;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    @media (max-width: 860px) {
+      .settings-shell { grid-template-columns: 1fr; }
+      .settings-rail { flex-direction: row; overflow-x: auto; }
+      .settings-rail button { width: auto; white-space: nowrap; }
+      .theme-cards { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-<div class="layout">
-  <aside class="sidebar">
-    <a href="dashboard.html" class="sidebar__brand">
-      <div class="sidebar__brand-icon">💰</div>
-      <div>
-        <div class="sidebar__brand-name">EMS</div>
-        <div class="sidebar__brand-sub">Finance Manager</div>
-      </div>
-    </a>
-    <nav class="sidebar__nav">
-      <div class="nav-section">
-        <div class="nav-section-label">Main</div>
-        <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
-        <a href="expenses.html" class="nav-link"><i class="fa-solid fa-receipt"></i> Expenses</a>
-        <a href="budget.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Budgets</a>
-        <a href="savings.html" class="nav-link"><i class="fa-solid fa-piggy-bank"></i> Savings</a>
-      </div>
-      <div class="nav-section">
-        <div class="nav-section-label">Insights</div>
-        <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> Analytics</a>
-        <a href="reports.html" class="nav-link"><i class="fa-solid fa-file-arrow-down"></i> Reports</a>
-      </div>
-      <div class="nav-section">
-        <div class="nav-section-label">Account</div>
-        <a href="settings.html" class="nav-link active"><i class="fa-solid fa-gear"></i> Settings</a>
-      </div>
-    </nav>
-    <div class="sidebar__footer">
-      <div class="user-chip">
-        <div class="user-avatar" id="sidebarAvatar">?</div>
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <a href="dashboard.html" class="sidebar__brand">
+        <div class="sidebar__brand-icon"><i class="fa-solid fa-wallet"></i></div>
         <div>
-          <div class="user-name" id="sidebarName">Loading…</div>
-          <div class="user-role">Personal Account</div>
+          <div class="sidebar__brand-name">EMS</div>
+          <div class="sidebar__brand-sub">Finance Manager</div>
         </div>
-      </div>
-    </div>
-  </aside>
+      </a>
 
-  <div class="main">
-    <header class="topbar">
-      <div class="topbar__left"><div class="topbar__title">Settings</div></div>
-      <div class="topbar__right">
-        <button class="btn btn--ghost btn--sm" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i></button>
-      </div>
-    </header>
-
-    <div class="page">
-      <div class="settings-layout">
-        <div class="settings-nav">
-          <button class="snav-btn active" data-panel="profile"><i class="fa-solid fa-user"></i> Profile</button>
-          <button class="snav-btn" data-panel="preferences"><i class="fa-solid fa-sliders"></i> Preferences</button>
-          <button class="snav-btn" data-panel="security"><i class="fa-solid fa-lock"></i> Security</button>
-          <button class="snav-btn" data-panel="data"><i class="fa-solid fa-database"></i> Data &amp; Account</button>
+      <nav class="sidebar__nav">
+        <div class="nav-section">
+          <div class="nav-section-label">Overview</div>
+          <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></a>
+          <a href="expenses.html" class="nav-link"><i class="fa-solid fa-receipt"></i><span>Expenses</span></a>
+          <a href="budget.html" class="nav-link"><i class="fa-solid fa-bullseye"></i><span>Budgets</span></a>
+          <a href="savings.html" class="nav-link"><i class="fa-solid fa-piggy-bank"></i><span>Savings Goals</span></a>
         </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Insights</div>
+          <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line"></i><span>Analytics &amp; AI</span></a>
+          <a href="reports.html" class="nav-link"><i class="fa-solid fa-file-export"></i><span>Reports</span></a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Account</div>
+          <a href="settings.html" class="nav-link active"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+        </div>
+      </nav>
 
-        <div>
-          <!-- Profile -->
-          <div class="settings-panel active" id="panel-profile">
-            <div class="s-card">
-              <div class="s-card__title">Personal Information</div>
-              <div class="s-card__sub">Update your name and contact details</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
-                <div class="form-group">
-                  <label class="form-label">First Name</label>
-                  <input class="form-control" id="pFirst" placeholder="First name">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Last Name</label>
-                  <input class="form-control" id="pLast" placeholder="Last name">
-                </div>
-              </div>
-              <div class="form-group" style="margin-bottom:14px">
-                <label class="form-label">Username</label>
-                <input class="form-control" id="pUsername" disabled style="opacity:0.6;cursor:not-allowed">
-                <span class="form-hint">Username cannot be changed</span>
-              </div>
-              <div class="form-group" style="margin-bottom:20px">
-                <label class="form-label">Email Address</label>
-                <input class="form-control" id="pEmail" type="email">
-              </div>
-              <button class="btn btn--primary" id="saveProfileBtn"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
-            </div>
+      <div class="sidebar__footer">
+        <div class="user-chip">
+          <div class="user-avatar" id="sidebarAvatar">U</div>
+          <div style="min-width:0;flex:1;">
+            <div class="user-name truncate" id="sidebarUserName">User</div>
+            <div class="user-role truncate" id="sidebarUserEmail">Personal Account</div>
           </div>
+        </div>
+      </div>
+    </aside>
 
-          <!-- Preferences -->
-          <div class="settings-panel" id="panel-preferences">
-            <div class="s-card">
-              <div class="s-card__title">Currency &amp; Display</div>
-              <div class="s-card__sub">Customize how figures and themes appear</div>
-              <div class="form-group" style="margin-bottom:18px">
-                <label class="form-label">Currency</label>
-                <select class="form-control" id="prefCurrency" style="max-width:260px">
-                  <option value="NPR">NPR — Nepalese Rupee (Rs.)</option>
-                  <option value="USD">USD — US Dollar ($)</option>
-                  <option value="EUR">EUR — Euro (€)</option>
-                  <option value="INR">INR — Indian Rupee (₹)</option>
-                  <option value="GBP">GBP — British Pound (£)</option>
-                </select>
+    <!-- MAIN -->
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar__left">
+          <div>
+            <div class="topbar__title">Workspace Settings</div>
+            <div class="topbar__sub">Manage your account profile, currency, theme, categories, and security</div>
+          </div>
+        </div>
+        <div class="topbar__right">
+          <button type="button" class="btn btn--ghost btn--icon btn--sm" id="logoutBtn" title="Sign out">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </header>
+
+      <main class="page">
+        <div class="settings-shell">
+          <!-- LEFT TAB RAIL -->
+          <nav class="settings-rail" id="settingsRail" role="tablist" aria-label="Settings sections">
+            <button type="button" role="tab" aria-selected="true" data-panel="sec-profile" class="active">
+              <i class="fa-solid fa-user"></i><span>Profile</span>
+            </button>
+            <button type="button" role="tab" aria-selected="false" data-panel="sec-preferences">
+              <i class="fa-solid fa-sliders"></i><span>Preferences</span>
+            </button>
+            <button type="button" role="tab" aria-selected="false" data-panel="sec-categories">
+              <i class="fa-solid fa-layer-group"></i><span>Categories</span>
+            </button>
+            <button type="button" role="tab" aria-selected="false" data-panel="sec-security">
+              <i class="fa-solid fa-shield-halved"></i><span>Security</span>
+            </button>
+          </nav>
+
+          <!-- SINGLE ACTIVE PANEL CONTAINER -->
+          <div>
+            <!-- 1. PROFILE -->
+            <section class="card settings-panel active" id="sec-profile" role="tabpanel">
+              <div class="sec-head">
+                <div>
+                  <h2 class="sec-head__title">Account Profile</h2>
+                  <div class="sec-head__sub">Your personal details displayed across statements and workspace</div>
+                </div>
+                <span class="badge badge--success">Active Member</span>
               </div>
+
+              <div class="profile-banner">
+                <div class="profile-banner__avatar" id="profileBigAvatar">U</div>
+                <div style="min-width:0;flex:1;">
+                  <div class="font-semibold truncate" style="font-size:16px;" id="profileHeading">Account Holder</div>
+                  <div class="text-xs text-muted mt-1" id="profileUsernameSub">@username</div>
+                </div>
+              </div>
+
+              <form id="profileForm">
+                <div class="grid grid-2">
+                  <div class="form-group">
+                    <label class="form-label" for="profFirstName">First Name</label>
+                    <input type="text" class="form-control" id="profFirstName" placeholder="First name" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="profLastName">Last Name</label>
+                    <input type="text" class="form-control" id="profLastName" placeholder="Last name" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label form-label--required" for="profEmail">Email Address</label>
+                  <input type="email" class="form-control" id="profEmail" required />
+                </div>
+                <div class="flex justify-end">
+                  <button type="submit" class="btn btn--primary btn--sm" id="saveProfileBtn">
+                    <i class="fa-solid fa-check"></i><span>Save Profile</span>
+                  </button>
+                </div>
+              </form>
+            </section>
+
+            <!-- 2. PREFERENCES -->
+            <section class="card settings-panel" id="sec-preferences" role="tabpanel">
+              <div class="sec-head">
+                <div>
+                  <h2 class="sec-head__title">Appearance &amp; Currency</h2>
+                  <div class="sec-head__sub">Customize workspace theme mode and monetary formatting</div>
+                </div>
+              </div>
+
               <div class="form-group">
-                <label class="form-label">Theme</label>
-                <div class="theme-grid" style="max-width:360px">
-                  <div class="theme-opt active" data-theme="light"><i class="fa-solid fa-sun"></i> Light</div>
-                  <div class="theme-opt" data-theme="dark"><i class="fa-solid fa-moon"></i> Dark</div>
-                  <div class="theme-opt" data-theme="system"><i class="fa-solid fa-desktop"></i> System</div>
-                </div>
-              </div>
-            </div>
+                <label class="form-label">Interface Theme</label>
+                <div class="theme-cards" id="themeCards">
+                  <button type="button" class="theme-choice" data-theme-val="light">
+                    <div class="theme-choice__top">
+                      <span><i class="fa-solid fa-sun mr-1" style="color:#f59e0b;"></i> Light</span>
+                      <i class="fa-solid fa-circle-check theme-choice__check"></i>
+                    </div>
+                    <div class="text-xs text-muted mt-1">Crisp daylight workspace</div>
+                  </button>
 
-            <div class="s-card">
-              <div class="s-card__title">Notifications</div>
-              <div class="s-card__sub">Control alerts and reminders</div>
-              <div class="toggle-row">
-                <div class="toggle-info">
-                  <div class="toggle-info__title">Budget Alerts</div>
-                  <div class="toggle-info__sub">Warn when spending approaches your budget limit</div>
-                </div>
-                <label class="toggle"><input type="checkbox" id="prefBudgetAlerts" checked><span class="toggle-slider"></span></label>
-              </div>
-              <div class="toggle-row">
-                <div class="toggle-info">
-                  <div class="toggle-info__title">App Notifications</div>
-                  <div class="toggle-info__sub">Enable in-app notifications</div>
-                </div>
-                <label class="toggle"><input type="checkbox" id="prefNotif" checked><span class="toggle-slider"></span></label>
-              </div>
-              <div style="margin-top:18px">
-                <button class="btn btn--primary" id="savePrefBtn"><i class="fa-solid fa-floppy-disk"></i> Save Preferences</button>
-              </div>
-            </div>
-          </div>
+                  <button type="button" class="theme-choice" data-theme-val="dark">
+                    <div class="theme-choice__top">
+                      <span><i class="fa-solid fa-moon mr-1" style="color:#a78bfa;"></i> Dark</span>
+                      <i class="fa-solid fa-circle-check theme-choice__check"></i>
+                    </div>
+                    <div class="text-xs text-muted mt-1">Low-glare obsidian mode</div>
+                  </button>
 
-          <!-- Security -->
-          <div class="settings-panel" id="panel-security">
-            <div class="s-card">
-              <div class="s-card__title">Change Password</div>
-              <div class="s-card__sub">Use a strong password you don't use elsewhere</div>
-              <div style="max-width:380px;display:flex;flex-direction:column;gap:14px">
-                <div class="form-group">
-                  <label class="form-label">Current Password</label>
-                  <input class="form-control" type="password" id="curPw" autocomplete="current-password">
+                  <button type="button" class="theme-choice" data-theme-val="system">
+                    <div class="theme-choice__top">
+                      <span><i class="fa-solid fa-desktop mr-1" style="color:#0ea5e9;"></i> System</span>
+                      <i class="fa-solid fa-circle-check theme-choice__check"></i>
+                    </div>
+                    <div class="text-xs text-muted mt-1">Sync with OS setting</div>
+                  </button>
                 </div>
-                <div class="form-group">
-                  <label class="form-label">New Password</label>
-                  <input class="form-control" type="password" id="newPw" autocomplete="new-password" placeholder="At least 8 characters">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Confirm New Password</label>
-                  <input class="form-control" type="password" id="confPw" autocomplete="new-password">
-                </div>
-                <button class="btn btn--primary" id="changePwBtn" style="width:fit-content"><i class="fa-solid fa-key"></i> Update Password</button>
               </div>
-            </div>
-          </div>
 
-          <!-- Data & Account -->
-          <div class="settings-panel" id="panel-data">
-            <div class="s-card">
-              <div class="s-card__title">Export Your Data</div>
-              <div class="s-card__sub">Download a complete JSON backup of all your expenses, budgets, tags, and savings goals</div>
-              <button class="btn btn--ghost" id="backupBtn"><i class="fa-solid fa-download"></i> Download Full Backup (JSON)</button>
-            </div>
-            <div class="s-card danger-card">
-              <div class="s-card__title" style="color:var(--rose-600)">Danger Zone</div>
-              <div class="s-card__sub">Permanently delete your account and all associated financial records</div>
-              <button class="btn btn--danger" id="deleteAccountBtn"><i class="fa-solid fa-trash-can"></i> Delete Account</button>
-            </div>
+              <div class="form-group" style="max-width:320px;margin-bottom:0;">
+                <label class="form-label" for="prefCurrency">Display Currency</label>
+                <select class="form-control" id="prefCurrency">
+                  <option value="NPR">NPR (Rs.) — Nepalese Rupee</option>
+                  <option value="USD">USD ($) — US Dollar</option>
+                  <option value="INR">INR (₹) — Indian Rupee</option>
+                  <option value="EUR">EUR (€) — Euro</option>
+                  <option value="GBP">GBP (£) — British Pound</option>
+                </select>
+                <div class="form-hint">Applied across all KPIs, charts, budgets, and reports.</div>
+              </div>
+            </section>
+
+            <!-- 3. CATEGORIES -->
+            <section class="card settings-panel" id="sec-categories" role="tabpanel">
+              <div class="sec-head">
+                <div>
+                  <h2 class="sec-head__title">Expense Categories</h2>
+                  <div class="sec-head__sub">Organize transactions and budget guardrails with custom color tags</div>
+                </div>
+                <span class="badge badge--neutral" id="catCountBadge">0 Total</span>
+              </div>
+
+              <form id="addCatForm" class="flex gap-2 flex-wrap mb-4">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="newCatName"
+                  placeholder="New category name (e.g. Subscriptions, Healthcare)"
+                  style="flex:1;min-width:220px;"
+                  required
+                />
+                <label class="color-picker-wrap" title="Pick badge color">
+                  <input type="color" id="newCatColor" value="#7c3aed" />
+                  <span class="text-xs text-muted font-mono" id="catColorHex">#7C3AED</span>
+                </label>
+                <button type="submit" class="btn btn--primary btn--sm" id="addCatBtn">
+                  <i class="fa-solid fa-plus"></i><span>Add Category</span>
+                </button>
+              </form>
+
+              <div class="cat-grid" id="categoriesList">
+                <span class="text-xs text-muted">Loading categories…</span>
+              </div>
+            </section>
+
+            <!-- 4. SECURITY -->
+            <section class="card settings-panel" id="sec-security" role="tabpanel">
+              <div class="sec-head">
+                <div>
+                  <h2 class="sec-head__title">Password &amp; Security</h2>
+                  <div class="sec-head__sub">Update your account credentials to keep your ledger protected</div>
+                </div>
+              </div>
+
+              <form id="passwordForm">
+                <div class="form-group" style="max-width:420px;">
+                  <label class="form-label form-label--required" for="oldPw">Current Password</label>
+                  <input type="password" class="form-control" id="oldPw" autocomplete="current-password" required />
+                </div>
+                <div class="grid grid-2">
+                  <div class="form-group">
+                    <label class="form-label form-label--required" for="newPw">New Password (min 8 chars)</label>
+                    <input type="password" class="form-control" id="newPw" minlength="8" autocomplete="new-password" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label form-label--required" for="confirmPw">Confirm New Password</label>
+                    <input type="password" class="form-control" id="confirmPw" minlength="8" autocomplete="new-password" required />
+                  </div>
+                </div>
+                <div class="flex justify-end">
+                  <button type="submit" class="btn btn--primary btn--sm" id="changePwBtn">
+                    <i class="fa-solid fa-key"></i><span>Update Password</span>
+                  </button>
+                </div>
+              </form>
+            </section>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   </div>
-</div>
 
-<!-- Confirm Account Deletion Modal -->
-<div class="modal-overlay" id="deleteAcctModal">
-  <div class="modal" style="max-width:400px">
-    <div class="modal__header">
-      <h3 class="modal__title" style="color:var(--danger)">Delete Account</h3>
-      <button class="modal__close" id="closeDeleteModal">✕</button>
-    </div>
-    <div class="modal__body">
-      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">
-        This will permanently erase your profile, expenses, budgets, tags, and savings goals. Enter your password to confirm.
-      </p>
-      <div class="form-group">
-        <label class="form-label form-label--required">Password</label>
-        <input class="form-control" type="password" id="deleteAcctPw" placeholder="Enter your password">
-        <span class="form-error" id="deleteAcctErr"></span>
-      </div>
-    </div>
-    <div class="modal__footer">
-      <button class="btn btn--ghost" id="cancelDeleteModal">Cancel</button>
-      <button class="btn btn--danger" id="confirmDeleteAcctBtn"><i class="fa-solid fa-trash-can"></i> Permanently Delete</button>
-    </div>
-  </div>
-</div>
+  <script src="core.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { CONFIG, api, auth, ThemeManager, ConfirmModal, Toast, Utils, Loader, CategoryLoader, hydrateUserShell } = window.AppCore;
+      if (!(await window.requireAuth())) return;
 
-<script src="core.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', async () => {
-  const { api, auth, Toast, Utils, Loader, ThemeManager } = window.AppCore;
-  const ok = await window.requireAuth();
-  if (!ok) return;
+      /* ── EXCLUSIVE SETTINGS TAB SWITCHER ── */
+      const railButtons = document.querySelectorAll('#settingsRail button[data-panel]');
+      const panels = document.querySelectorAll('.settings-panel');
 
-  const u = auth.user;
-  if (u) {
-    document.getElementById('sidebarName').textContent = u.name || u.username;
-    document.getElementById('sidebarAvatar').textContent = (u.first_name?.[0] || u.username?.[0] || '?').toUpperCase();
-    document.getElementById('pFirst').value = u.first_name || '';
-    document.getElementById('pLast').value = u.last_name || '';
-    document.getElementById('pUsername').value = u.username || '';
-    document.getElementById('pEmail').value = u.email || '';
-  }
+      function activateSettingsPanel(panelId) {
+        const targetPanel = document.getElementById(panelId) || panels[0];
+        if (!targetPanel) return;
 
-  let selectedTheme = u?.theme || 'light';
-  let prefId = null;
+        railButtons.forEach(btn => {
+          const isMatch = btn.dataset.panel === targetPanel.id;
+          btn.classList.toggle('active', isMatch);
+          btn.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+        });
 
-  function applyThemeSelection(theme) {
-    selectedTheme = theme;
-    ThemeManager.apply(theme);
-    document.querySelectorAll('.theme-opt').forEach(o => o.classList.toggle('active', o.dataset.theme === theme));
-  }
-
-  document.querySelectorAll('.snav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.snav-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById(`panel-${btn.dataset.panel}`).classList.add('active');
-    });
-  });
-
-  document.querySelectorAll('.theme-opt').forEach(opt => {
-    opt.addEventListener('click', () => applyThemeSelection(opt.dataset.theme));
-  });
-
-  async function loadPrefs() {
-    try {
-      const pref = await api.get('/preferences/', false);
-      if (pref && pref.id) {
-        prefId = pref.id;
-        document.getElementById('prefCurrency').value = pref.currency || 'NPR';
-        document.getElementById('prefBudgetAlerts').checked = pref.enable_budget_alerts !== false;
-        document.getElementById('prefNotif').checked = pref.enable_notifications !== false;
-        applyThemeSelection(pref.theme || 'light');
+        panels.forEach(panel => {
+          panel.classList.toggle('active', panel.id === targetPanel.id);
+        });
       }
-    } catch {}
-  }
 
-  document.getElementById('saveProfileBtn').addEventListener('click', async () => {
-    const btn = document.getElementById('saveProfileBtn');
-    const first_name = document.getElementById('pFirst').value.trim();
-    const last_name = document.getElementById('pLast').value.trim();
-    const email = document.getElementById('pEmail').value.trim();
-    if (!email) { Toast.error('Email is required.'); return; }
-    Loader.showBtn(btn);
-    try {
-      const updated = await api.patch(`/users/${u.id}/`, { first_name, last_name, email });
-      auth.updateStoredUser(updated);
-      document.getElementById('sidebarName').textContent = updated.name || updated.username;
-      Toast.success('Profile updated!');
-    } catch (e) { Toast.error(e.message); }
-    finally { Loader.showBtn(btn, false); }
-  });
-
-  document.getElementById('savePrefBtn').addEventListener('click', async () => {
-    const btn = document.getElementById('savePrefBtn');
-    const currency = document.getElementById('prefCurrency').value;
-    const payload = {
-      currency,
-      theme: selectedTheme,
-      enable_budget_alerts: document.getElementById('prefBudgetAlerts').checked,
-      enable_notifications: document.getElementById('prefNotif').checked,
-    };
-    Loader.showBtn(btn);
-    try {
-      const saved = prefId ? await api.put(`/preferences/${prefId}/`, payload) : await api.post('/preferences/', payload);
-      prefId = saved.id || prefId;
-      auth.updateStoredUser({
-        currency: saved.currency || currency,
-        currency_symbol: saved.currency_symbol,
-        theme: saved.theme || selectedTheme,
+      railButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          activateSettingsPanel(btn.dataset.panel);
+          history.replaceState(null, '', `#${btn.dataset.panel}`);
+        });
       });
-      Toast.success('Preferences saved!');
-    } catch (e) { Toast.error(e.message); }
-    finally { Loader.showBtn(btn, false); }
-  });
 
-  document.getElementById('changePwBtn').addEventListener('click', async () => {
-    const btn = document.getElementById('changePwBtn');
-    const current_password = document.getElementById('curPw').value;
-    const new_password = document.getElementById('newPw').value;
-    const confirm_password = document.getElementById('confPw').value;
-    if (!current_password || !new_password) { Toast.error('Fill in all password fields.'); return; }
-    if (new_password !== confirm_password) { Toast.error('New passwords do not match.'); return; }
-    if (new_password.length < 8) { Toast.error('Password must be at least 8 characters.'); return; }
-    Loader.showBtn(btn);
-    try {
-      const res = await api.post('/auth/change-password/', { current_password, new_password, confirm_password });
-      if (res.token) {
-        auth.setSession(res.token, auth.user, !!localStorage.getItem('ems_token'));
+      const initialHash = window.location.hash.replace('#', '');
+      if (initialHash) activateSettingsPanel(initialHash);
+
+      /* ── PROFILE HYDRATION ── */
+      function renderProfileHeader(u) {
+        const display = [u?.first_name, u?.last_name].filter(Boolean).join(' ') || u?.username || 'Account Holder';
+        const initial = (u?.first_name?.[0] || u?.username?.[0] || 'U').toUpperCase();
+        document.getElementById('profileBigAvatar').textContent = initial;
+        document.getElementById('profileHeading').textContent = display;
+        document.getElementById('profileUsernameSub').textContent = `@${u?.username || 'user'} · ${u?.email || 'No email set'}`;
       }
-      ['curPw', 'newPw', 'confPw'].forEach(id => document.getElementById(id).value = '');
-      Toast.success('Password updated!');
-    } catch (e) { Toast.error(e.message); }
-    finally { Loader.showBtn(btn, false); }
-  });
 
-  document.getElementById('backupBtn').addEventListener('click', async () => {
-    try {
-      const [expenses, budgets, goals, tags] = await Promise.all([
-        api.getAll('/expenses/'),
-        api.getAll('/budgets/'),
-        api.getAll('/savings-goals/'),
-        api.get('/tags/', false),
-      ]);
-      const backup = { exported_at: new Date().toISOString(), user: u.username, expenses, budgets, savings_goals: goals, tags };
-      Utils.downloadFile(JSON.stringify(backup, null, 2), `ems_backup_${new Date().toISOString().split('T')[0]}.json`, 'application/json');
-      Toast.success('Backup downloaded!');
-    } catch (e) { Toast.error(e.message); }
-  });
+      const user = auth.user || {};
+      renderProfileHeader(user);
+      document.getElementById('profFirstName').value = user.first_name || '';
+      document.getElementById('profLastName').value = user.last_name || '';
+      document.getElementById('profEmail').value = user.email || '';
 
-  const delModal = document.getElementById('deleteAcctModal');
-  document.getElementById('deleteAccountBtn').addEventListener('click', () => {
-    document.getElementById('deleteAcctPw').value = '';
-    document.getElementById('deleteAcctErr').textContent = '';
-    delModal.classList.add('open');
-  });
-  document.getElementById('closeDeleteModal').addEventListener('click', () => delModal.classList.remove('open'));
-  document.getElementById('cancelDeleteModal').addEventListener('click', () => delModal.classList.remove('open'));
-  delModal.addEventListener('click', e => { if (e.target === delModal) delModal.classList.remove('open'); });
+      /* ── THEME CARDS SYNC ── */
+      function syncThemeCards() {
+        const saved = localStorage.getItem(CONFIG.THEME_KEY) || 'system';
+        document.querySelectorAll('#themeCards .theme-choice').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.themeVal === saved);
+        });
+      }
+      syncThemeCards();
+      window.addEventListener('ems:themechange', syncThemeCards);
 
-  document.getElementById('confirmDeleteAcctBtn').addEventListener('click', async () => {
-    const btn = document.getElementById('confirmDeleteAcctBtn');
-    const password = document.getElementById('deleteAcctPw').value;
-    if (!password) {
-      document.getElementById('deleteAcctErr').textContent = 'Password is required.';
-      return;
-    }
-    Loader.showBtn(btn);
-    try {
-      await api.delete(`/users/${u.id}/`, { password });
-      auth.clear();
-      window.location.href = 'register.html';
-    } catch (e) {
-      document.getElementById('deleteAcctErr').textContent = e.message;
-    } finally {
-      Loader.showBtn(btn, false);
-    }
-  });
+      document.querySelectorAll('#themeCards .theme-choice').forEach(btn => {
+        btn.addEventListener('click', () => {
+          ThemeManager.set(btn.dataset.themeVal);
+          syncThemeCards();
+          Toast.info(`Theme switched to ${btn.dataset.themeVal}`);
+        });
+      });
 
-  document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
+      /* ── CURRENCY SELECTOR ── */
+      const curSel = document.getElementById('prefCurrency');
+      curSel.value = Utils.getCurrency();
+      curSel.addEventListener('change', () => {
+        localStorage.setItem(CONFIG.CURRENCY_KEY, curSel.value);
+        Toast.success(`Display currency updated to ${curSel.value}`);
+      });
 
-  loadPrefs();
-});
-</script>
+      /* ── SAVE PROFILE ── */
+      document.getElementById('profileForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const btn = document.getElementById('saveProfileBtn');
+        Loader.showBtn(btn, true);
+
+        const payload = {
+          first_name: document.getElementById('profFirstName').value.trim(),
+          last_name: document.getElementById('profLastName').value.trim(),
+          email: document.getElementById('profEmail').value.trim(),
+        };
+
+        try {
+          let updated = null;
+          for (const endpoint of ['/auth/profile/', '/auth/me/', '/users/me/']) {
+            try {
+              updated = await api.patch(endpoint, payload);
+              break;
+            } catch (err) {
+              if (err.status !== 404) throw err;
+            }
+          }
+          const merged = { ...auth.user, ...(updated?.user || updated || payload) };
+          auth.setSession(auth.token, merged, Boolean(localStorage.getItem(CONFIG.TOKEN_KEY)));
+          hydrateUserShell(merged);
+          renderProfileHeader(merged);
+          Toast.success('Profile saved');
+        } catch (err) {
+          Toast.error(err.message);
+        } finally {
+          Loader.showBtn(btn, false);
+        }
+      });
+
+      /* ── CATEGORIES MANAGER ── */
+      const colorInput = document.getElementById('newCatColor');
+      const colorHex = document.getElementById('catColorHex');
+      colorInput.addEventListener('input', () => {
+        colorHex.textContent = colorInput.value.toUpperCase();
+      });
+
+      let loadedCats = [];
+      async function renderCategories() {
+        loadedCats = await CategoryLoader.load(true);
+        document.getElementById('catCountBadge').textContent = `${loadedCats.length} Total`;
+        const listEl = document.getElementById('categoriesList');
+
+        if (!loadedCats.length) {
+          listEl.innerHTML = `<span class="text-xs text-muted">No categories configured yet. Add your first category above.</span>`;
+          return;
+        }
+
+        listEl.innerHTML = loadedCats.map(c => `
+          <span class="cat-chip">
+            <span class="cat-chip__dot" style="background:${Utils.escapeHtml(c.color || '#7c3aed')};"></span>
+            <span>${Utils.escapeHtml(c.name)}</span>
+            <button type="button" class="cat-chip__del del-cat-btn" data-id="${c.id}" title="Remove category">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </span>
+        `).join('');
+
+        listEl.querySelectorAll('.del-cat-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const cat = loadedCats.find(x => String(x.id) === btn.dataset.id);
+            const ok = await ConfirmModal.ask({
+              title: 'Remove Category',
+              message: `Delete the "${cat?.name || 'selected'}" category? Existing expenses in this category may become uncategorized.`,
+              confirmText: 'Remove',
+            });
+            if (!ok) return;
+
+            try {
+              await api.delete(`/categories/${btn.dataset.id}/`);
+              Toast.success('Category removed');
+              await renderCategories();
+            } catch (err) {
+              Toast.error(err.message);
+            }
+          });
+        });
+      }
+
+      document.getElementById('addCatForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const name = document.getElementById('newCatName').value.trim();
+        if (!name) return;
+
+        if (loadedCats.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+          Toast.warning(`Category "${name}" already exists.`);
+          return;
+        }
+
+        const btn = document.getElementById('addCatBtn');
+        Loader.showBtn(btn, true);
+        try {
+          await api.post('/categories/', { name, color: colorInput.value });
+          document.getElementById('newCatName').value = '';
+          Toast.success('Category added');
+          await renderCategories();
+        } catch (err) {
+          Toast.error(err.message);
+        } finally {
+          Loader.showBtn(btn, false);
+        }
+      });
+
+      /* ── CHANGE PASSWORD ── */
+      document.getElementById('passwordForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const oldPassword = document.getElementById('oldPw').value;
+        const newPassword = document.getElementById('newPw').value;
+        const confirmPassword = document.getElementById('confirmPw').value;
+
+        if (newPassword !== confirmPassword) {
+          Toast.warning('New password and confirmation do not match.');
+          return;
+        }
+
+        const btn = document.getElementById('changePwBtn');
+        Loader.showBtn(btn, true);
+        try {
+          await api.post('/auth/change-password/', {
+            old_password: oldPassword,
+            new_password: newPassword,
+          });
+          e.target.reset();
+          Toast.success('Password updated successfully');
+        } catch (err) {
+          Toast.error(err.message);
+        } finally {
+          Loader.showBtn(btn, false);
+        }
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
+      await renderCategories();
+    });
+  </script>
 </body>
 </html>

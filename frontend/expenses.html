@@ -1,650 +1,608 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Expenses — EMS</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="assets/css/main.css">
-<style>
-.toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
-.toolbar-left { display:flex; align-items:center; gap:8px; flex:1; flex-wrap:wrap; min-width:0; }
-.toolbar-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
-.select-sm { padding:7px 12px; border:1px solid var(--border-strong); border-radius:var(--radius); background:var(--bg-card); color:var(--text-primary); font-size:13px; outline:none; cursor:pointer; }
-.select-sm:focus { border-color:var(--accent); }
-.bulk-bar { background:var(--accent); color:white; padding:10px 20px; border-radius:var(--radius); display:none; align-items:center; gap:12px; margin-bottom:12px; font-size:14px; }
-.bulk-bar.show { display:flex; }
-.bulk-bar button { background:rgba(255,255,255,0.2); border:none; color:white; padding:6px 14px; border-radius:var(--radius-sm); cursor:pointer; font-size:13px; }
-.bulk-bar button:hover { background:rgba(255,255,255,0.3); }
-.expense-table-wrap { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
-.pagination { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-top:1px solid var(--border); font-size:13px; color:var(--text-muted); }
-.page-btns { display:flex; gap:6px; }
-.page-btn { padding:5px 11px; border:1px solid var(--border-strong); border-radius:var(--radius-sm); background:var(--bg-card); color:var(--text-secondary); cursor:pointer; font-size:13px; transition:all 0.15s; }
-.page-btn:hover { background:var(--bg-hover); }
-.page-btn.active { background:var(--accent); color:white; border-color:var(--accent); }
-.page-btn:disabled { opacity:0.4; cursor:not-allowed; }
-.row-check { cursor:pointer; accent-color:var(--accent); width:15px; height:15px; }
-.amount-cell { font-family:var(--font-mono); font-weight:600; color:var(--danger); }
-.tag-chip { display:inline-flex; align-items:center; padding:2px 8px; border-radius:var(--radius-full); font-size:11px; font-weight:500; margin-right:4px; margin-top:3px; background:var(--accent-soft); color:var(--accent); }
-.summary-bar { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px; }
-.summary-pill { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; }
-.summary-pill__label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); }
-.summary-pill__value { font-size:20px; font-weight:600; font-family:var(--font-mono); margin-top:4px; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expenses — Expense Management System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <style>
+    .ledger-controls {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-xs);
+    }
+    .pay-pills-bar {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .channel-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 13px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-base);
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .channel-pill:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+    .channel-pill.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+    .ledger-filter-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 1.8fr) minmax(160px, 1fr) auto auto auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .bulk-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 16px;
+      border-radius: var(--radius);
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-light);
+      margin-bottom: 14px;
+    }
+    .bulk-bar.show { display: flex; }
+
+    /* Align table headers properly with right-aligned cells */
+    .data-table th.text-right { text-align: right; }
+    .data-table td.text-right { text-align: right; }
+
+    .cat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+    .row-actions {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    @media (max-width: 960px) {
+      .ledger-filter-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .ledger-filter-grid .search-input {
+        grid-column: 1 / -1;
+      }
+    }
+    @media (max-width: 540px) {
+      .ledger-filter-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="layout">
-  <aside class="sidebar">
-    <a href="dashboard.html" class="sidebar__brand">
-      <div class="sidebar__brand-icon">💰</div>
-      <div>
-        <div class="sidebar__brand-name">EMS</div>
-        <div class="sidebar__brand-sub">Finance Manager</div>
-      </div>
-    </a>
-    <nav class="sidebar__nav">
-      <div class="nav-section">
-        <div class="nav-section-label">Main</div>
-        <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-house"></i> Dashboard</a>
-        <a href="expenses.html" class="nav-link active"><i class="fa-solid fa-receipt"></i> Expenses</a>
-        <a href="budget.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i> Budgets</a>
-        <a href="savings.html" class="nav-link"><i class="fa-solid fa-piggy-bank"></i> Savings</a>
-      </div>
-      <div class="nav-section">
-        <div class="nav-section-label">Insights</div>
-        <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line"></i> Analytics</a>
-        <a href="reports.html" class="nav-link"><i class="fa-solid fa-file-arrow-down"></i> Reports</a>
-      </div>
-      <div class="nav-section">
-        <div class="nav-section-label">Account</div>
-        <a href="settings.html" class="nav-link"><i class="fa-solid fa-gear"></i> Settings</a>
-      </div>
-    </nav>
-    <div class="sidebar__footer">
-      <div class="user-chip">
-        <div class="user-avatar" id="sidebarAvatar">?</div>
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <a href="dashboard.html" class="sidebar__brand">
+        <div class="sidebar__brand-icon"><i class="fa-solid fa-wallet"></i></div>
         <div>
-          <div class="user-name" id="sidebarName">Loading…</div>
-          <div class="user-role">Personal Account</div>
+          <div class="sidebar__brand-name">EMS</div>
+          <div class="sidebar__brand-sub">Finance Manager</div>
         </div>
-      </div>
-    </div>
-  </aside>
+      </a>
 
-  <div class="main">
-    <header class="topbar">
-      <div class="topbar__left"><div class="topbar__title">Expenses</div></div>
-      <div class="topbar__right">
-        <button class="btn btn--ghost btn--sm" id="exportCsvBtn"><i class="fa-solid fa-download"></i> Export</button>
-        <button class="btn btn--primary btn--sm" id="addBtn"><i class="fa-solid fa-plus"></i> Add Expense</button>
-        <button class="btn btn--ghost btn--sm" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i></button>
-      </div>
-    </header>
+      <nav class="sidebar__nav">
+        <div class="nav-section">
+          <div class="nav-section-label">Overview</div>
+          <a href="dashboard.html" class="nav-link"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></a>
+          <a href="expenses.html" class="nav-link active"><i class="fa-solid fa-receipt"></i><span>Expenses</span></a>
+          <a href="budget.html" class="nav-link"><i class="fa-solid fa-bullseye"></i><span>Budgets</span></a>
+          <a href="savings.html" class="nav-link"><i class="fa-solid fa-piggy-bank"></i><span>Savings Goals</span></a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Insights</div>
+          <a href="analytics.html" class="nav-link"><i class="fa-solid fa-chart-line"></i><span>Analytics &amp; AI</span></a>
+          <a href="reports.html" class="nav-link"><i class="fa-solid fa-file-export"></i><span>Reports</span></a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Account</div>
+          <a href="settings.html" class="nav-link"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+        </div>
+      </nav>
 
-    <div class="page">
-      <div class="summary-bar">
-        <div class="summary-pill">
-          <div class="summary-pill__label">Page Total</div>
-          <div class="summary-pill__value" id="filteredTotal">—</div>
-        </div>
-        <div class="summary-pill">
-          <div class="summary-pill__label">Matching Records</div>
-          <div class="summary-pill__value" id="filteredCount">—</div>
-        </div>
-        <div class="summary-pill">
-          <div class="summary-pill__label">Page Average</div>
-          <div class="summary-pill__value" id="filteredAvg">—</div>
-        </div>
-      </div>
-
-      <div class="toolbar">
-        <div class="toolbar-left">
-          <div class="search-input" style="max-width:250px">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="searchInput" placeholder="Search title, tag, location…">
+      <div class="sidebar__footer">
+        <div class="user-chip" onclick="location.href='settings.html'">
+          <div class="user-avatar" id="sidebarAvatar">U</div>
+          <div style="min-width:0;flex:1;">
+            <div class="user-name truncate" id="sidebarUserName">User</div>
+            <div class="user-role truncate" id="sidebarUserEmail">Personal Account</div>
           </div>
-          <select class="select-sm" id="filterCategory"><option value="">All Categories</option></select>
-          <select class="select-sm" id="filterTag"><option value="">All Tags</option></select>
-          <select class="select-sm" id="filterPayment">
-            <option value="">All Payments</option>
-            <option value="cash">Cash</option>
-            <option value="esewa">eSewa</option>
-            <option value="khalti">Khalti</option>
-            <option value="card">Card</option>
-            <option value="netbanking">Net Banking</option>
-            <option value="other">Other</option>
-          </select>
-          <select class="select-sm" id="filterPeriod">
-            <option value="">All Time</option>
-            <option value="today">Today</option>
-            <option value="week">Last 7 Days</option>
-            <option value="month" selected>Last 30 Days</option>
-            <option value="quarter">Last 90 Days</option>
-            <option value="year">This Year</option>
-          </select>
-          <button class="btn btn--ghost btn--sm" id="clearFiltersBtn"><i class="fa-solid fa-xmark"></i> Clear</button>
-        </div>
-        <div class="toolbar-right">
-          <select class="select-sm" id="sortBy">
-            <option value="-date">Newest First</option>
-            <option value="date">Oldest First</option>
-            <option value="-amount">Highest Amount</option>
-            <option value="amount">Lowest Amount</option>
-          </select>
         </div>
       </div>
+    </aside>
 
-      <div class="bulk-bar" id="bulkBar">
-        <span id="bulkCount">0 selected</span>
-        <button id="bulkDeleteBtn"><i class="fa-solid fa-trash"></i> Delete Selected</button>
-        <button id="bulkClearBtn">Clear Selection</button>
-      </div>
-
-      <div class="expense-table-wrap">
-        <div class="table-wrapper">
-          <table class="data-table" id="expenseTable">
-            <thead>
-              <tr>
-                <th style="width:40px"><input type="checkbox" class="row-check" id="selectAll" title="Select all"></th>
-                <th>Title &amp; Tags</th>
-                <th>Category</th>
-                <th>Date</th>
-                <th>Payment</th>
-                <th class="text-right">Amount</th>
-                <th style="width:96px"></th>
-              </tr>
-            </thead>
-            <tbody id="expenseBody">
-              <tr><td colspan="7"><div class="empty-state" style="padding:40px 0"><div class="spinner"></div></div></td></tr>
-            </tbody>
-          </table>
+    <!-- MAIN -->
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar__left">
+          <div>
+            <div class="topbar__title">Expense Ledger</div>
+            <div class="topbar__sub">Record, filter, and manage your daily transactions</div>
+          </div>
         </div>
-        <div class="pagination" id="paginationBar">
-          <span id="pageInfo">—</span>
-          <div class="page-btns" id="pageBtns"></div>
+        <div class="topbar__right">
+          <button type="button" class="btn btn--primary btn--sm" id="addExpenseTopBtn">
+            <i class="fa-solid fa-plus"></i><span>New Expense</span>
+          </button>
+          <button type="button" class="btn btn--ghost btn--icon btn--sm" id="logoutBtn" title="Sign out">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
+      </header>
 
-<!-- Add/Edit Expense Modal -->
-<div class="modal-overlay" id="expenseModal">
-  <div class="modal" style="max-width:560px">
-    <div class="modal__header">
-      <h3 class="modal__title" id="modalTitle">Add Expense</h3>
-      <button class="modal__close" id="closeExpenseModal">✕</button>
-    </div>
-    <div class="modal__body">
-      <input type="hidden" id="editId">
-      <div class="form-group">
-        <label class="form-label form-label--required">Title</label>
-        <input class="form-control" id="fTitle" placeholder="e.g. Grocery Shopping" maxlength="200">
-        <span class="form-error" id="fTitleErr"></span>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div class="form-group">
-          <label class="form-label form-label--required" id="fAmountLabel">Amount</label>
-          <input class="form-control" id="fAmount" type="number" min="0.01" step="0.01" placeholder="0">
-          <span class="form-error" id="fAmountErr"></span>
-        </div>
-        <div class="form-group">
-          <label class="form-label form-label--required">Category</label>
-          <select class="form-control" id="fCategory"><option value="">Select…</option></select>
-          <span class="form-error" id="fCategoryErr"></span>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-        <div class="form-group">
-          <label class="form-label form-label--required">Date</label>
-          <input class="form-control" id="fDate" type="date">
-          <span class="form-error" id="fDateErr"></span>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Payment Method</label>
-          <select class="form-control" id="fPayment">
-            <option value="cash">Cash</option>
-            <option value="esewa">eSewa</option>
-            <option value="khalti">Khalti</option>
-            <option value="card">Card</option>
-            <option value="netbanking">Net Banking</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Tags (comma-separated)</label>
-        <input class="form-control" id="fTags" placeholder="e.g. food, client-meeting, reimbursable" maxlength="250">
-        <span class="form-hint">New tags are created automatically and saved to your account.</span>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Location</label>
-        <input class="form-control" id="fLocation" placeholder="e.g. Bhatbhateni, Kathmandu" maxlength="200">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Description</label>
-        <textarea class="form-control" id="fDesc" rows="2" placeholder="Optional notes…" maxlength="500" style="resize:vertical"></textarea>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Receipt Reference / Note</label>
-        <input class="form-control" id="fReceiptNote" placeholder="e.g. Bill #INV-2041 or eSewa Ref" maxlength="200">
-      </div>
-      <div class="form-group">
-        <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
-          <input type="checkbox" id="fRecurring" style="accent-color:var(--accent)">
-          Recurring expense (auto-logs future occurrences)
-        </label>
-      </div>
-      <div class="form-group" id="recurringGroup" style="display:none">
-        <label class="form-label">Frequency</label>
-        <select class="form-control" id="fFrequency">
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly" selected>Monthly</option>
-          <option value="yearly">Yearly</option>
-        </select>
-      </div>
-    </div>
-    <div class="modal__footer">
-      <button class="btn btn--ghost" id="cancelExpenseModal">Cancel</button>
-      <button class="btn btn--primary" id="saveExpenseBtn"><i class="fa-solid fa-floppy-disk"></i> Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- Detail Modal -->
-<div class="modal-overlay" id="detailModal">
-  <div class="modal" style="max-width:440px">
-    <div class="modal__header">
-      <h3 class="modal__title">Expense Details</h3>
-      <button class="modal__close" id="closeDetailModal">✕</button>
-    </div>
-    <div class="modal__body" id="detailContent" style="gap:10px"></div>
-    <div class="modal__footer">
-      <button class="btn btn--ghost" id="closeDetailBtn">Close</button>
-      <button class="btn btn--ghost" id="editFromDetailBtn"><i class="fa-solid fa-pen"></i> Edit</button>
-    </div>
-  </div>
-</div>
-
-<script src="core.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', async () => {
-  const { api, auth, Toast, Utils, Loader, CategoryLoader, TagLoader } = window.AppCore;
-  const ok = await window.requireAuth();
-  if (!ok) return;
-
-  const u = auth.user;
-  if (u) {
-    document.getElementById('sidebarName').textContent = u.name || u.username;
-    document.getElementById('sidebarAvatar').textContent = (u.first_name?.[0] || u.username?.[0] || '?').toUpperCase();
-  }
-  document.getElementById('fAmountLabel').textContent = `Amount (${Utils.getCurrencySymbol()})`;
-
-  let state = {
-    expenses: [], total: 0, page: 1, pageSize: 20,
-    search: '', category: '', tag: '', payment: '', period: 'month', sort: '-date',
-    selected: new Set(), currentDetail: null,
-  };
-
-  function buildQuery() {
-    const p = new URLSearchParams();
-    if (state.search) p.set('search', state.search);
-    if (state.category) p.set('category', state.category);
-    if (state.tag) p.set('tag', state.tag);
-    if (state.payment) p.set('payment_method', state.payment);
-    if (state.period) p.set('period', state.period);
-    p.set('ordering', state.sort);
-    p.set('page', state.page);
-    p.set('page_size', state.pageSize);
-    return p.toString();
-  }
-
-  async function loadExpenses() {
-    try {
-      const data = await api.get(`/expenses/?${buildQuery()}`, false);
-      state.expenses = Array.isArray(data) ? data : (data.results || []);
-      state.total = data.count ?? state.expenses.length;
-      renderTable();
-      renderPagination();
-      updateSummary();
-    } catch (e) {
-      Toast.error('Failed to load: ' + e.message);
-      document.getElementById('expenseBody').innerHTML =
-        `<tr><td colspan="7"><div class="empty-state"><i class="fa-solid fa-circle-exclamation"></i><div class="empty-state__title">Failed to load</div></div></td></tr>`;
-    }
-  }
-
-  function updateSummary() {
-    const total = state.expenses.reduce((s, e) => s + parseFloat(e.amount || 0), 0);
-    const count = state.expenses.length;
-    document.getElementById('filteredTotal').textContent = Utils.formatCurrency(total);
-    document.getElementById('filteredCount').textContent = state.total;
-    document.getElementById('filteredAvg').textContent = count ? Utils.formatCurrency(total / count) : '—';
-  }
-
-  function renderTable() {
-    const tbody = document.getElementById('expenseBody');
-    if (!state.expenses.length) {
-      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state" style="padding:40px 0">
-        <i class="fa-solid fa-receipt" style="font-size:40px"></i>
-        <div class="empty-state__title">No expenses found</div>
-        <div class="empty-state__sub">Try adjusting filters or add a new expense.</div>
-      </div></td></tr>`;
-      return;
-    }
-    const payIcons = { cash: 'money-bill', esewa: 'mobile-screen', khalti: 'mobile-screen', card: 'credit-card', netbanking: 'building-columns', other: 'ellipsis' };
-    tbody.innerHTML = state.expenses.map(e => {
-      const color = e.category_color || '#6366f1';
-      const icon = Utils.safeIcon(e.category_icon);
-      const checked = state.selected.has(e.id);
-      const tagsHtml = (e.tags_detail || []).map(t => `<span class="tag-chip">#${Utils.escapeHtml(t.name)}</span>`).join('');
-      return `<tr data-id="${e.id}">
-        <td><input type="checkbox" class="row-check expense-check" data-id="${e.id}" ${checked ? 'checked' : ''}></td>
-        <td>
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:34px;height:34px;border-radius:8px;background:${color}18;color:${color};display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              <i class="fa-solid fa-${icon}" style="font-size:15px"></i>
+      <main class="page">
+        <!-- SUMMARY KPIs -->
+        <section class="stats-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));">
+          <div class="stat-card">
+            <div class="kpi-icon-row">
+              <span class="stat-card__label">Filtered Total</span>
+              <span class="kpi-badge-icon" style="background:var(--accent-light);color:var(--accent);">
+                <i class="fa-solid fa-wallet"></i>
+              </span>
             </div>
-            <div>
-              <div style="font-weight:500;font-size:14px">${Utils.escapeHtml(e.title)}</div>
-              ${e.location ? `<div style="font-size:11px;color:var(--text-muted)"><i class="fa-solid fa-location-dot" style="font-size:10px"></i> ${Utils.escapeHtml(e.location)}</div>` : ''}
-              <div>
-                ${e.is_recurring ? `<span style="font-size:10px;background:var(--accent-light);color:var(--accent);padding:1px 6px;border-radius:99px;font-weight:600;margin-right:4px">↻ ${e.recurring_frequency}</span>` : ''}
-                ${tagsHtml}
-              </div>
+            <div class="stat-card__value" id="sumFilteredTotal">—</div>
+            <div class="stat-card__delta stat-card__delta--neutral" id="sumFilteredCount">0 matching entries</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="kpi-icon-row">
+              <span class="stat-card__label">Average Transaction</span>
+              <span class="kpi-badge-icon" style="background:var(--info-bg);color:var(--sky-600);">
+                <i class="fa-solid fa-scale-balanced"></i>
+              </span>
+            </div>
+            <div class="stat-card__value" id="sumFilteredAvg">—</div>
+            <div class="stat-card__delta stat-card__delta--neutral">Per matching entry</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="kpi-icon-row">
+              <span class="stat-card__label">Largest Single Expense</span>
+              <span class="kpi-badge-icon" style="background:var(--danger-bg);color:var(--rose-600);">
+                <i class="fa-solid fa-arrow-trend-up"></i>
+              </span>
+            </div>
+            <div class="stat-card__value" id="sumFilteredMax">—</div>
+            <div class="stat-card__delta stat-card__delta--neutral truncate" id="sumFilteredMaxTitle">—</div>
+          </div>
+        </section>
+
+        <!-- UNIFIED FILTER CARD -->
+        <section class="ledger-controls">
+          <div class="pay-pills-bar" id="payPills">
+            <button type="button" class="channel-pill active" data-pay="">All Channels</button>
+            <button type="button" class="channel-pill" data-pay="esewa"><i class="fa-solid fa-mobile-screen"></i> eSewa</button>
+            <button type="button" class="channel-pill" data-pay="khalti"><i class="fa-solid fa-wallet"></i> Khalti</button>
+            <button type="button" class="channel-pill" data-pay="cash"><i class="fa-solid fa-money-bill-wave"></i> Cash</button>
+            <button type="button" class="channel-pill" data-pay="card"><i class="fa-regular fa-credit-card"></i> Card</button>
+            <button type="button" class="channel-pill" data-pay="netbanking"><i class="fa-solid fa-building-columns"></i> Net Banking</button>
+          </div>
+
+          <div class="ledger-filter-grid">
+            <div class="search-input" style="background:var(--bg-base);">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="search" id="searchInput" placeholder="Search title, note, or category…" />
+            </div>
+            <select class="form-control" id="filterCategory">
+              <option value="">All Categories</option>
+            </select>
+            <input type="date" class="form-control" id="filterFrom" title="From date" />
+            <input type="date" class="form-control" id="filterTo" title="To date" />
+            <button type="button" class="btn btn--ghost btn--sm" id="resetFiltersBtn">
+              <i class="fa-solid fa-rotate-left"></i><span>Reset</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- BULK ACTION BAR -->
+        <div class="bulk-bar" id="bulkBar">
+          <span class="text-sm font-medium"><strong id="selectedCount">0</strong> selected</span>
+          <button type="button" class="btn btn--danger btn--sm" id="bulkDeleteBtn">
+            <i class="fa-solid fa-trash"></i><span>Delete Selected</span>
+          </button>
+        </div>
+
+        <!-- DATA TABLE -->
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div class="table-wrap" style="border:none;border-radius:0;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width:40px;"><input type="checkbox" id="selectAllChk" aria-label="Select all" /></th>
+                  <th data-sort="date" style="width:135px;">Date <i class="fa-solid fa-sort text-xs"></i></th>
+                  <th data-sort="title">Description</th>
+                  <th style="width:165px;">Category</th>
+                  <th style="width:135px;">Channel</th>
+                  <th data-sort="amount" class="text-right" style="width:135px;">Amount <i class="fa-solid fa-sort text-xs"></i></th>
+                  <th class="text-right" style="width:100px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="expensesTbody">
+                <tr><td colspan="7" class="text-center text-muted" style="padding:36px;">Loading expenses…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- CREATE / EDIT EXPENSE MODAL -->
+  <div class="modal-overlay" id="expenseModal" role="dialog" aria-modal="true">
+    <div class="modal" style="max-width:480px;">
+      <div class="modal__header">
+        <h3 class="modal__title" id="expModalTitle">New Expense</h3>
+        <button type="button" class="modal__close" id="closeExpModal">&times;</button>
+      </div>
+      <form id="expenseForm">
+        <input type="hidden" id="expId" />
+        <div class="modal__body">
+          <div class="form-group">
+            <label class="form-label form-label--required" for="expTitle">Title</label>
+            <input type="text" class="form-control" id="expTitle" placeholder="e.g. Grocery run at Bhat-Bhateni" required />
+          </div>
+          <div class="grid grid-2">
+            <div class="form-group">
+              <label class="form-label form-label--required" for="expAmount">Amount</label>
+              <input type="number" step="0.01" min="0.01" class="form-control font-mono" id="expAmount" placeholder="0.00" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label form-label--required" for="expDate">Date</label>
+              <input type="date" class="form-control" id="expDate" required />
             </div>
           </div>
-        </td>
-        <td><span style="display:inline-flex;align-items:center;gap:5px;font-size:13px">
-          <span style="width:7px;height:7px;border-radius:50%;background:${color};flex-shrink:0"></span>
-          ${Utils.escapeHtml(e.category_name || 'Uncategorized')}
-        </span></td>
-        <td style="font-size:13px">${Utils.relativeDate(e.date)}<br><span style="font-size:11px;color:var(--text-muted)">${Utils.formatDate(e.date, { month: 'short', day: 'numeric', year: 'numeric' })}</span></td>
-        <td><span class="payment-chip"><i class="fa-solid fa-${payIcons[e.payment_method] || 'money-bill'}" style="font-size:11px"></i> ${e.payment_method}</span></td>
-        <td class="amount-cell text-right">${Utils.formatCurrency(e.amount)}</td>
-        <td>
-          <div style="display:flex;gap:4px;justify-content:flex-end">
-            <button class="btn btn--ghost btn--icon btn--sm detail-btn" data-id="${e.id}" title="View"><i class="fa-solid fa-eye" style="font-size:13px"></i></button>
-            <button class="btn btn--ghost btn--icon btn--sm edit-btn" data-id="${e.id}" title="Edit"><i class="fa-solid fa-pen" style="font-size:13px"></i></button>
-            <button class="btn btn--ghost btn--icon btn--sm delete-btn" data-id="${e.id}" title="Delete"><i class="fa-solid fa-trash-can" style="font-size:13px;color:var(--danger)"></i></button>
+          <div class="grid grid-2">
+            <div class="form-group">
+              <label class="form-label form-label--required" for="expCategory">Category</label>
+              <select class="form-control" id="expCategory" required></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="expPayment">Payment Channel</label>
+              <select class="form-control" id="expPayment">
+                <option value="esewa">eSewa</option>
+                <option value="khalti">Khalti</option>
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="netbanking">Net Banking</option>
+              </select>
+            </div>
           </div>
-        </td>
-      </tr>`;
-    }).join('');
+          <div class="form-group">
+            <label class="form-label" for="expDescription">Notes (Optional)</label>
+            <textarea class="form-control" id="expDescription" rows="2" placeholder="Optional details or memo…"></textarea>
+          </div>
+        </div>
+        <div class="modal__footer">
+          <button type="button" class="btn btn--ghost" id="cancelExpModal">Cancel</button>
+          <button type="submit" class="btn btn--primary" id="saveExpBtn">
+            <i class="fa-solid fa-check"></i><span>Save Expense</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-    document.querySelectorAll('.expense-check').forEach(cb => {
-      cb.addEventListener('change', () => {
-        const id = parseInt(cb.dataset.id, 10);
-        cb.checked ? state.selected.add(id) : state.selected.delete(id);
-        updateBulkBar();
+  <script src="core.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { api, auth, ConfirmModal, Toast, Utils, Loader, CategoryLoader } = window.AppCore;
+      if (!(await window.requireAuth())) return;
+
+      let expenses = [];
+      let filtered = [];
+      let selectedPay = '';
+      let sortField = 'date';
+      let sortAsc = false;
+      const selectedIds = new Set();
+
+      const CHANNEL_LABELS = {
+        esewa: 'eSewa',
+        khalti: 'Khalti',
+        cash: 'Cash',
+        card: 'Card',
+        netbanking: 'Net Banking',
+      };
+
+      // Strip redundant single-date suffix like "Rent(2026-01-24)" while preserving ranges like "(2026-01-18 - 2026-01-23)"
+      function formatCleanTitle(rawTitle) {
+        return String(rawTitle || '')
+          .replace(/\s*\(\d{4}-\d{2}-\d{2}\)\s*$/, '')
+          .trim();
+      }
+
+      await Promise.all([
+        CategoryLoader.populateSelect(document.getElementById('filterCategory'), 'All Categories'),
+        CategoryLoader.populateSelect(document.getElementById('expCategory'), 'Choose category'),
+      ]);
+
+      const modal = document.getElementById('expenseModal');
+      function openModal(item = null) {
+        document.getElementById('expModalTitle').textContent = item ? 'Edit Expense' : 'New Expense';
+        document.getElementById('expId').value = item?.id || '';
+        document.getElementById('expTitle').value = item ? formatCleanTitle(item.title) : '';
+        document.getElementById('expAmount').value = item?.amount || '';
+        document.getElementById('expDate').value = item?.date ? String(item.date).slice(0, 10) : Utils.todayISO();
+        document.getElementById('expCategory').value = item?.category || '';
+        document.getElementById('expPayment').value = item?.payment_method || 'esewa';
+        document.getElementById('expDescription').value = item?.description || '';
+        modal.classList.add('open');
+        setTimeout(() => document.getElementById('expTitle').focus(), 50);
+      }
+      const closeModal = () => modal.classList.remove('open');
+
+      document.getElementById('addExpenseTopBtn').addEventListener('click', () => openModal());
+      document.getElementById('closeExpModal').addEventListener('click', closeModal);
+      document.getElementById('cancelExpModal').addEventListener('click', closeModal);
+      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+      document.getElementById('expenseForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const id = document.getElementById('expId').value;
+        const btn = document.getElementById('saveExpBtn');
+        Loader.showBtn(btn, true);
+
+        const payload = {
+          title: document.getElementById('expTitle').value.trim(),
+          amount: parseFloat(document.getElementById('expAmount').value),
+          date: document.getElementById('expDate').value,
+          category: document.getElementById('expCategory').value,
+          payment_method: document.getElementById('expPayment').value,
+          description: document.getElementById('expDescription').value.trim(),
+        };
+
+        try {
+          if (id) {
+            await api.put(`/expenses/${id}/`, payload);
+            Toast.success('Expense updated');
+          } else {
+            await api.post('/expenses/', payload);
+            Toast.success('Expense added');
+          }
+          closeModal();
+          await fetchExpenses();
+        } catch (err) {
+          Toast.error(err.message);
+        } finally {
+          Loader.showBtn(btn, false);
+        }
       });
+
+      document.querySelectorAll('#payPills .channel-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#payPills .channel-pill').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          selectedPay = btn.dataset.pay;
+          applyFilters();
+        });
+      });
+
+      document.getElementById('searchInput').addEventListener('input', Utils.debounce(applyFilters, 180));
+      ['filterCategory', 'filterFrom', 'filterTo'].forEach(id => {
+        document.getElementById(id).addEventListener('change', applyFilters);
+      });
+
+      document.getElementById('resetFiltersBtn').addEventListener('click', () => {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('filterCategory').value = '';
+        document.getElementById('filterFrom').value = '';
+        document.getElementById('filterTo').value = '';
+        selectedPay = '';
+        document.querySelectorAll('#payPills .channel-pill').forEach((b, i) => b.classList.toggle('active', i === 0));
+        applyFilters();
+      });
+
+      document.querySelectorAll('th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+          const field = th.dataset.sort;
+          if (sortField === field) sortAsc = !sortAsc;
+          else { sortField = field; sortAsc = field === 'title'; }
+          applyFilters();
+        });
+      });
+
+      function applyFilters() {
+        const q = document.getElementById('searchInput').value.trim().toLowerCase();
+        const cat = document.getElementById('filterCategory').value;
+        const from = document.getElementById('filterFrom').value;
+        const to = document.getElementById('filterTo').value;
+
+        filtered = expenses.filter(e => {
+          const expDate = String(e.date || '').slice(0, 10);
+          if (selectedPay && e.payment_method !== selectedPay) return false;
+          if (cat && String(e.category) !== String(cat)) return false;
+          if (from && expDate < from) return false;
+          if (to && expDate > to) return false;
+          if (q) {
+            const hay = `${e.title} ${e.description || ''} ${e.category_name || ''}`.toLowerCase();
+            if (!hay.includes(q)) return false;
+          }
+          return true;
+        });
+
+        filtered.sort((a, b) => {
+          let cmp = 0;
+          if (sortField === 'amount') cmp = parseFloat(a.amount) - parseFloat(b.amount);
+          else if (sortField === 'title') cmp = formatCleanTitle(a.title).localeCompare(formatCleanTitle(b.title));
+          else cmp = String(a.date || '').localeCompare(String(b.date || ''));
+          return sortAsc ? cmp : -cmp;
+        });
+
+        selectedIds.clear();
+        syncBulkBar();
+        renderTable();
+      }
+
+      function syncBulkBar() {
+        const bar = document.getElementById('bulkBar');
+        document.getElementById('selectedCount').textContent = selectedIds.size;
+        bar.classList.toggle('show', selectedIds.size > 0);
+        document.getElementById('selectAllChk').checked = filtered.length > 0 && selectedIds.size === filtered.length;
+      }
+
+      function renderTable() {
+        const total = filtered.reduce((s, e) => s + parseFloat(e.amount || 0), 0);
+        const maxItem = filtered.reduce((best, e) => (!best || parseFloat(e.amount) > parseFloat(best.amount) ? e : best), null);
+
+        document.getElementById('sumFilteredTotal').textContent = Utils.formatCurrency(total);
+        document.getElementById('sumFilteredCount').textContent = `${filtered.length} matching entries`;
+        document.getElementById('sumFilteredAvg').textContent = filtered.length ? Utils.formatCurrency(total / filtered.length) : '—';
+        document.getElementById('sumFilteredMax').textContent = maxItem ? Utils.formatCurrency(maxItem.amount) : '—';
+        document.getElementById('sumFilteredMaxTitle').textContent = maxItem ? formatCleanTitle(maxItem.title) : '—';
+
+        const tbody = document.getElementById('expensesTbody');
+        if (!filtered.length) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7">
+                <div class="empty-state" style="padding:40px 20px;">
+                  <i class="fa-solid fa-filter-circle-xmark"></i>
+                  <div class="empty-state__title">No matching expenses</div>
+                  <div class="empty-state__sub">Try clearing your filters or click "New Expense" to add an entry.</div>
+                </div>
+              </td>
+            </tr>`;
+          return;
+        }
+
+        tbody.innerHTML = filtered.map(e => {
+          const cleanTitle = formatCleanTitle(e.title);
+          const catColor = e.category_color || '#7c3aed';
+          const payKey = (e.payment_method || 'cash').toLowerCase();
+          const payLabel = CHANNEL_LABELS[payKey] || payKey.toUpperCase();
+
+          return `
+            <tr>
+              <td><input type="checkbox" class="row-chk" data-id="${e.id}" ${selectedIds.has(String(e.id)) ? 'checked' : ''} /></td>
+              <td class="text-sm text-muted" style="white-space:nowrap;">${Utils.formatDate(e.date)}</td>
+              <td>
+                <div class="font-medium">${Utils.escapeHtml(cleanTitle)}</div>
+                ${e.description ? `<div class="text-xs text-muted mt-1 truncate" style="max-width:340px;">${Utils.escapeHtml(e.description)}</div>` : ''}
+              </td>
+              <td>
+                <span class="cat-pill" style="background:${Utils.escapeHtml(catColor)}18;color:${Utils.escapeHtml(catColor)};">
+                  ${Utils.escapeHtml(e.category_name || 'Uncategorized')}
+                </span>
+              </td>
+              <td><span class="payment-chip">${Utils.escapeHtml(payLabel)}</span></td>
+              <td class="text-right font-mono font-semibold" style="color:var(--danger);">-${Utils.formatCurrency(e.amount)}</td>
+              <td class="text-right" style="white-space:nowrap;">
+                <div class="row-actions">
+                  <button type="button" class="btn btn--ghost btn--icon btn--sm edit-btn" data-id="${e.id}" title="Edit">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button type="button" class="btn btn--danger btn--icon btn--sm del-btn" data-id="${e.id}" title="Delete">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>`;
+        }).join('');
+
+        tbody.querySelectorAll('.row-chk').forEach(chk => {
+          chk.addEventListener('change', () => {
+            if (chk.checked) selectedIds.add(chk.dataset.id);
+            else selectedIds.delete(chk.dataset.id);
+            syncBulkBar();
+          });
+        });
+
+        tbody.querySelectorAll('.edit-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const item = expenses.find(x => String(x.id) === btn.dataset.id);
+            if (item) openModal(item);
+          });
+        });
+
+        tbody.querySelectorAll('.del-btn').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const item = expenses.find(x => String(x.id) === btn.dataset.id);
+            const ok = await ConfirmModal.ask({
+              title: 'Delete Expense',
+              message: `Permanently delete "${formatCleanTitle(item?.title || 'this expense')}"? This cannot be undone.`,
+              confirmText: 'Delete',
+            });
+            if (!ok) return;
+
+            try {
+              await api.delete(`/expenses/${btn.dataset.id}/`);
+              Toast.success('Expense deleted');
+              await fetchExpenses();
+            } catch (err) {
+              Toast.error(err.message);
+            }
+          });
+        });
+      }
+
+      document.getElementById('selectAllChk').addEventListener('change', e => {
+        selectedIds.clear();
+        if (e.target.checked) filtered.forEach(item => selectedIds.add(String(item.id)));
+        renderTable();
+        syncBulkBar();
+      });
+
+      document.getElementById('bulkDeleteBtn').addEventListener('click', async () => {
+        if (!selectedIds.size) return;
+        const ok = await ConfirmModal.ask({
+          title: 'Delete Selected Expenses',
+          message: `Permanently delete ${selectedIds.size} selected expense entries? This cannot be undone.`,
+          confirmText: `Delete (${selectedIds.size})`,
+        });
+        if (!ok) return;
+
+        try {
+          await Promise.all([...selectedIds].map(id => api.delete(`/expenses/${id}/`)));
+          Toast.success(`Deleted ${selectedIds.size} expenses`);
+          await fetchExpenses();
+        } catch (err) {
+          Toast.error(err.message);
+        }
+      });
+
+      async function fetchExpenses() {
+        try {
+          expenses = await api.getAll('/expenses/?ordering=-date');
+          applyFilters();
+        } catch (err) {
+          Toast.error('Failed to load expenses: ' + err.message);
+        }
+      }
+
+      document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
+      await fetchExpenses();
     });
-    document.querySelectorAll('.detail-btn').forEach(b => b.addEventListener('click', () => openDetail(parseInt(b.dataset.id, 10))));
-    document.querySelectorAll('.edit-btn').forEach(b => b.addEventListener('click', () => openEdit(parseInt(b.dataset.id, 10))));
-    document.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', () => deleteExpense(parseInt(b.dataset.id, 10))));
-  }
-
-  function renderPagination() {
-    const totalPages = Math.ceil(state.total / state.pageSize);
-    const start = (state.page - 1) * state.pageSize + 1;
-    const end = Math.min(state.page * state.pageSize, state.total);
-    document.getElementById('pageInfo').textContent = state.total ? `${start}–${end} of ${state.total}` : 'No results';
-    let html = `<button class="page-btn" onclick="window._goPage(${state.page - 1})" ${state.page <= 1 ? 'disabled' : ''}>‹</button>`;
-    for (let p = Math.max(1, state.page - 2); p <= Math.min(totalPages, state.page + 2); p++) {
-      html += `<button class="page-btn ${p === state.page ? 'active' : ''}" onclick="window._goPage(${p})">${p}</button>`;
-    }
-    html += `<button class="page-btn" onclick="window._goPage(${state.page + 1})" ${state.page >= totalPages ? 'disabled' : ''}>›</button>`;
-    document.getElementById('pageBtns').innerHTML = html;
-  }
-
-  window._goPage = function (p) {
-    if (p < 1) return;
-    state.page = p;
-    state.selected.clear();
-    updateBulkBar();
-    loadExpenses();
-  };
-
-  function updateBulkBar() {
-    const n = state.selected.size;
-    const bar = document.getElementById('bulkBar');
-    n > 0 ? bar.classList.add('show') : bar.classList.remove('show');
-    if (n > 0) document.getElementById('bulkCount').textContent = `${n} selected`;
-    const allCb = document.getElementById('selectAll');
-    allCb.indeterminate = n > 0 && n < state.expenses.length;
-    allCb.checked = n === state.expenses.length && n > 0;
-  }
-
-  document.getElementById('selectAll').addEventListener('change', e => {
-    if (e.target.checked) state.expenses.forEach(ex => state.selected.add(ex.id));
-    else state.selected.clear();
-    renderTable();
-    updateBulkBar();
-  });
-  document.getElementById('bulkDeleteBtn').addEventListener('click', async () => {
-    if (!confirm(`Delete ${state.selected.size} expense(s)?`)) return;
-    try {
-      await api.delete('/expenses/bulk_delete/', { ids: [...state.selected] });
-      state.selected.clear();
-      updateBulkBar();
-      Toast.success('Deleted.');
-      loadExpenses();
-    } catch (e) { Toast.error(e.message); }
-  });
-  document.getElementById('bulkClearBtn').addEventListener('click', () => {
-    state.selected.clear();
-    renderTable();
-    updateBulkBar();
-  });
-
-  const expModal = document.getElementById('expenseModal');
-  function openExpModal(title = 'Add Expense') {
-    document.getElementById('modalTitle').textContent = title;
-    ['fTitleErr', 'fAmountErr', 'fCategoryErr', 'fDateErr'].forEach(id => document.getElementById(id).textContent = '');
-    expModal.classList.add('open');
-  }
-  function closeExpModal() { expModal.classList.remove('open'); }
-  document.getElementById('closeExpenseModal').addEventListener('click', closeExpModal);
-  document.getElementById('cancelExpenseModal').addEventListener('click', closeExpModal);
-  expModal.addEventListener('click', e => { if (e.target === expModal) closeExpModal(); });
-
-  document.getElementById('fRecurring').addEventListener('change', e => {
-    document.getElementById('recurringGroup').style.display = e.target.checked ? 'block' : 'none';
-  });
-
-  function openAdd() {
-    document.getElementById('editId').value = '';
-    ['fTitle', 'fAmount', 'fTags', 'fLocation', 'fDesc', 'fReceiptNote'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('fCategory').value = '';
-    document.getElementById('fDate').value = new Date().toISOString().split('T')[0];
-    document.getElementById('fPayment').value = 'cash';
-    document.getElementById('fRecurring').checked = false;
-    document.getElementById('recurringGroup').style.display = 'none';
-    openExpModal('Add Expense');
-  }
-
-  function openEdit(id) {
-    const e = state.expenses.find(x => x.id === id);
-    if (!e) return;
-    document.getElementById('editId').value = e.id;
-    document.getElementById('fTitle').value = e.title;
-    document.getElementById('fAmount').value = parseFloat(e.amount);
-    document.getElementById('fCategory').value = e.category;
-    document.getElementById('fDate').value = e.date;
-    document.getElementById('fPayment').value = e.payment_method;
-    document.getElementById('fTags').value = (e.tags_detail || []).map(t => t.name).join(', ');
-    document.getElementById('fLocation').value = e.location || '';
-    document.getElementById('fDesc').value = e.description || '';
-    document.getElementById('fReceiptNote').value = e.receipt_note || '';
-    document.getElementById('fRecurring').checked = e.is_recurring;
-    document.getElementById('recurringGroup').style.display = e.is_recurring ? 'block' : 'none';
-    if (e.recurring_frequency) document.getElementById('fFrequency').value = e.recurring_frequency;
-    openExpModal('Edit Expense');
-  }
-
-  document.getElementById('saveExpenseBtn').addEventListener('click', async () => {
-    const btn = document.getElementById('saveExpenseBtn');
-    const id = document.getElementById('editId').value;
-    const title = document.getElementById('fTitle').value.trim();
-    const amount = parseFloat(document.getElementById('fAmount').value);
-    const cat = document.getElementById('fCategory').value;
-    const date = document.getElementById('fDate').value;
-    const pay = document.getElementById('fPayment').value;
-    const loc = document.getElementById('fLocation').value.trim();
-    const desc = document.getElementById('fDesc').value.trim();
-    const receipt_note = document.getElementById('fReceiptNote').value.trim();
-    const recur = document.getElementById('fRecurring').checked;
-    const freq = document.getElementById('fFrequency').value;
-    const tag_names = document.getElementById('fTags').value
-      .split(',')
-      .map(t => t.trim().replace(/^#/, ''))
-      .filter(Boolean);
-
-    let valid = true;
-    const setErr = (elId, msg) => { document.getElementById(elId).textContent = msg; if (msg) valid = false; };
-    setErr('fTitleErr', title ? '' : 'Title is required.');
-    setErr('fAmountErr', amount > 0 ? '' : 'Valid amount required.');
-    setErr('fCategoryErr', cat ? '' : 'Category is required.');
-    setErr('fDateErr', date ? '' : 'Date is required.');
-    if (!valid) return;
-
-    const payload = {
-      title,
-      amount,
-      category: parseInt(cat, 10),
-      date,
-      payment_method: pay,
-      location: loc,
-      description: desc,
-      receipt_note,
-      tag_ids: [],
-      tag_names,
-      is_recurring: recur,
-      recurring_frequency: recur ? freq : '',
-    };
-    Loader.showBtn(btn);
-    try {
-      id ? await api.put(`/expenses/${id}/`, payload) : await api.post('/expenses/', payload);
-      TagLoader.invalidate();
-      await TagLoader.populateSelect(document.getElementById('filterTag'), 'All Tags');
-      Toast.success(id ? 'Expense updated!' : 'Expense added!');
-      closeExpModal();
-      state.page = 1;
-      loadExpenses();
-    } catch (e) { Toast.error(e.message); }
-    finally { Loader.showBtn(btn, false); }
-  });
-
-  async function deleteExpense(id) {
-    if (!confirm('Delete this expense?')) return;
-    try {
-      await api.delete(`/expenses/${id}/`);
-      Toast.success('Deleted.');
-      loadExpenses();
-    } catch (e) { Toast.error(e.message); }
-  }
-
-  const detailModal = document.getElementById('detailModal');
-  function openDetail(id) {
-    const e = state.expenses.find(x => x.id === id);
-    if (!e) return;
-    state.currentDetail = e;
-    const color = e.category_color || '#6366f1';
-    const tagsHtml = (e.tags_detail || []).length
-      ? `<div style="grid-column:1/-1"><div style="color:var(--text-muted);margin-bottom:4px">Tags</div><div>${e.tags_detail.map(t => `<span class="tag-chip">#${Utils.escapeHtml(t.name)}</span>`).join('')}</div></div>`
-      : '';
-    document.getElementById('detailContent').innerHTML = `
-      <div style="display:flex;align-items:center;gap:12px;padding:4px 0 12px;border-bottom:1px solid var(--border)">
-        <div style="width:48px;height:48px;border-radius:12px;background:${color}18;color:${color};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
-          <i class="fa-solid fa-${Utils.safeIcon(e.category_icon)}"></i>
-        </div>
-        <div>
-          <div style="font-size:17px;font-weight:600">${Utils.escapeHtml(e.title)}</div>
-          <div style="font-size:13px;color:var(--text-muted)">${Utils.escapeHtml(e.category_name || 'Uncategorized')}</div>
-        </div>
-        <div style="margin-left:auto;font-size:22px;font-weight:700;font-family:var(--font-mono);color:var(--danger)">${Utils.formatCurrency(e.amount)}</div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px">
-        <div><div style="color:var(--text-muted);margin-bottom:2px">Date</div><div style="font-weight:500">${Utils.formatDate(e.date, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</div></div>
-        <div><div style="color:var(--text-muted);margin-bottom:2px">Payment</div><div style="font-weight:500;text-transform:capitalize">${e.payment_method}</div></div>
-        ${e.location ? `<div style="grid-column:1/-1"><div style="color:var(--text-muted);margin-bottom:2px">Location</div><div style="font-weight:500">${Utils.escapeHtml(e.location)}</div></div>` : ''}
-        ${e.receipt_note ? `<div style="grid-column:1/-1"><div style="color:var(--text-muted);margin-bottom:2px">Receipt Note</div><div style="font-family:var(--font-mono);font-size:12px">${Utils.escapeHtml(e.receipt_note)}</div></div>` : ''}
-        ${tagsHtml}
-        ${e.description ? `<div style="grid-column:1/-1"><div style="color:var(--text-muted);margin-bottom:2px">Notes</div><div style="color:var(--text-secondary)">${Utils.escapeHtml(e.description)}</div></div>` : ''}
-      </div>`;
-    detailModal.classList.add('open');
-  }
-  document.getElementById('closeDetailModal').addEventListener('click', () => detailModal.classList.remove('open'));
-  document.getElementById('closeDetailBtn').addEventListener('click', () => detailModal.classList.remove('open'));
-  document.getElementById('editFromDetailBtn').addEventListener('click', () => {
-    if (state.currentDetail) {
-      detailModal.classList.remove('open');
-      openEdit(state.currentDetail.id);
-    }
-  });
-  detailModal.addEventListener('click', e => { if (e.target === detailModal) detailModal.classList.remove('open'); });
-
-  const debouncedSearch = Utils.debounce(() => {
-    state.search = document.getElementById('searchInput').value.trim();
-    state.page = 1;
-    loadExpenses();
-  }, 400);
-  document.getElementById('searchInput').addEventListener('input', debouncedSearch);
-  ['filterCategory', 'filterTag', 'filterPayment', 'filterPeriod', 'sortBy'].forEach(id => {
-    document.getElementById(id).addEventListener('change', () => {
-      state.category = document.getElementById('filterCategory').value;
-      state.tag = document.getElementById('filterTag').value;
-      state.payment = document.getElementById('filterPayment').value;
-      state.period = document.getElementById('filterPeriod').value;
-      state.sort = document.getElementById('sortBy').value;
-      state.page = 1;
-      loadExpenses();
-    });
-  });
-  document.getElementById('clearFiltersBtn').addEventListener('click', () => {
-    document.getElementById('searchInput').value = '';
-    ['filterCategory', 'filterTag', 'filterPayment'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('filterPeriod').value = 'month';
-    document.getElementById('sortBy').value = '-date';
-    state = { ...state, search: '', category: '', tag: '', payment: '', period: 'month', sort: '-date', page: 1 };
-    loadExpenses();
-  });
-
-  document.getElementById('exportCsvBtn').addEventListener('click', async () => {
-    try {
-      const rows = await api.getAll(`/expenses/?${buildQuery()}`);
-      const cell = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
-      const csv = [
-        ['Date', 'Title', 'Category', 'Amount', 'Payment', 'Tags', 'Location', 'Receipt Note', 'Description'].map(cell).join(','),
-        ...rows.map(e => [
-          e.date,
-          e.title,
-          e.category_name,
-          e.amount,
-          e.payment_method,
-          (e.tags_detail || []).map(t => t.name).join('; '),
-          e.location,
-          e.receipt_note,
-          e.description,
-        ].map(cell).join(',')),
-      ].join('\n');
-      Utils.downloadFile(csv, `expenses_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
-      Toast.success('Exported!');
-    } catch (e) { Toast.error(e.message); }
-  });
-
-  document.getElementById('addBtn').addEventListener('click', openAdd);
-  document.getElementById('logoutBtn').addEventListener('click', () => auth.logout());
-
-  await Promise.all([
-    CategoryLoader.populateSelect(document.getElementById('filterCategory'), 'All Categories'),
-    CategoryLoader.populateSelect(document.getElementById('fCategory'), 'Select category…'),
-    TagLoader.populateSelect(document.getElementById('filterTag'), 'All Tags'),
-  ]);
-  loadExpenses();
-});
-</script>
+  </script>
 </body>
 </html>
