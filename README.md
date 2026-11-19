@@ -428,7 +428,7 @@ Developed strictly for academic evaluation under the **Bachelor of Computer Appl
 BCA 6th Semester | VS International College
 
 - 📧 [dhananjay07sah@gmail.com](mailto:dhananjay07sah@gmail.com)
-- 🐙 [github.com/dhananjaysah46](https://github.com/dhananjaysah46)
+- 🐙 [github.com/dhananjaysah46](https://github.com/DhanannjaY)
 
 ---
 
